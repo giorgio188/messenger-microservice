@@ -30,13 +30,4 @@ public class RegistrationService {
         userProfileRepository.save(userProfile);
     }
 
-    @Transactional
-    public void changePassword(int userId, String newPassword) {
-        Optional<UserProfile> userProfile = userProfileRepository.findById(userId);
-        if (userProfile.isPresent()) {
-            userProfile.get().setPassword(passwordEncoder.encode(newPassword));
-            userProfileRepository.save(userProfile.get());
-        }
-    }
-
 }
