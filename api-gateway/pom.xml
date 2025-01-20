@@ -5,7 +5,7 @@
 	<parent>
 		<groupId>com.messenger</groupId>
 		<artifactId>microservices-parent</artifactId>
-		<version>3.4.1</version>
+		<version>1.0.0</version>
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
 	<artifactId>api-gateway</artifactId>
@@ -32,6 +32,11 @@
 		<dependency>
 			<groupId>org.springframework.cloud</groupId>
 			<artifactId>spring-cloud-starter-gateway-mvc</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-webflux</artifactId>
+			<version>3.3.1</version>
 		</dependency>
 	</dependencies>
 	<dependencyManagement>

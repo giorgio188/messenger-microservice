@@ -19,6 +19,7 @@ import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
+import java.util.Optional;
 
 @RestController()
 @RequiredArgsConstructor
@@ -61,4 +62,21 @@ public class AuthController {
         return ResponseEntity.ok(Map.of("token", token));
     }
 
+    @PostMapping("/verify")
+    public ResponseEntity<?> validateToken(@RequestHeader("Authorization") String token) {
+        if (token == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Token is missing");
+        }
+
+        // Удаляем префикс "Bearer " из токена (если он есть)
+        String jwtToken = token.startsWith("Bearer ") ? token.substring(7) : token;
+
+        Optional<Integer> userIdOptional = jwtUtil.verifyToken(jwtToken);
+        if (userIdOptional.isPresent()) {
+            int userId = userIdOptional.get();
+            return ResponseEntity.ok(userId);
+        } else {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid token");
+        }
+    }
 }
