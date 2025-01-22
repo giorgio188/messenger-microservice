@@ -1,6 +1,13 @@
 Server:
   port: 8081
+
 spring:
+  main:
+    web-application-type: reactive
+  autoconfigure:
+      exclude:
+        - org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration
+        - org.springframework.boot.autoconfigure.orm.jpa.HibernateJpaAutoConfiguration
   application:
     name: api-gateway
   cloud:
@@ -13,8 +20,7 @@ spring:
         - id: user-service
           uri: lb://user-service
           filters:
-            - TokenRelay=Authorization
-            - name: JwtAuthenticationFilter
+            - name: JWTAuthenticationFilterFactory
           predicates:
             - Path=api/user/**
             - Path=api/friends/**

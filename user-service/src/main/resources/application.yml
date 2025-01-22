@@ -9,7 +9,7 @@ spring:
           enabled: true
   # DB
   datasource:
-    url: ${DATABASE_URL}
+    url: ${DATABASE_AUTH_USER_URL}
     username: ${DATABASE_USERNAME}
     password: ${DATABASE_PASSWORD}
     driver-class-name: org.postgresql.Driver

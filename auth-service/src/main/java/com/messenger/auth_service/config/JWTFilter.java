@@ -15,6 +15,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
+import java.util.Optional;
 
 @Component
 @RequiredArgsConstructor
@@ -28,14 +29,14 @@ public class JWTFilter extends OncePerRequestFilter{
                                     FilterChain filterChain) throws ServletException, IOException {
 
         String authorization = request.getHeader("Authorization");
-        if (authorization != null && !authorization.isBlank() && authorization.startsWith("Bearer ")) {
+        if (authorization != null && !authorization.isEmpty() && authorization.startsWith("Bearer ")) {
             String token = authorization.substring(7);
-            if(token.isBlank()) {
+            if(token.isEmpty()) {
                 response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Invalid JWT token in bearer header");
             } else {
                 try {
-                    String username = jwtUtil.verifyToken(token);
-                    UserDetails userDetails = userProfileDetailsService.loadUserByUsername(username);
+                    Optional<String> username = jwtUtil.verifyToken(token);
+                    UserDetails userDetails = userProfileDetailsService.loadUserByUsername(username.orElse(null));
                     UsernamePasswordAuthenticationToken authentication =
                             new UsernamePasswordAuthenticationToken(userDetails,
                                     userDetails.getPassword(),

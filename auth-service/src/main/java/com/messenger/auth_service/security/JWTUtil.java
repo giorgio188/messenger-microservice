@@ -33,7 +33,7 @@ public class JWTUtil {
                 .sign(Algorithm.HMAC256(secret));
     }
 
-    public Optional<Integer> verifyToken(String token) {
+    public Optional<String> verifyToken(String token) {
         try {
             JWTVerifier verifier = JWT.require(Algorithm.HMAC256(secret))
                     .withSubject("User authentication")
@@ -41,8 +41,8 @@ public class JWTUtil {
                     .build();
 
             DecodedJWT jwt = verifier.verify(token);
-            int userId = jwt.getClaim("id").asInt();
-            return Optional.of(userId);
+            String username = jwt.getClaim("username").asString();
+            return Optional.of(username);
         } catch (JWTVerificationException e) {
             return Optional.empty();
         }

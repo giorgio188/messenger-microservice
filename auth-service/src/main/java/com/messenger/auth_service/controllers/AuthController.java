@@ -67,13 +67,10 @@ public class AuthController {
         if (token == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Token is missing");
         }
-
-        // Удаляем префикс "Bearer " из токена (если он есть)
         String jwtToken = token.startsWith("Bearer ") ? token.substring(7) : token;
-
-        Optional<Integer> userIdOptional = jwtUtil.verifyToken(jwtToken);
-        if (userIdOptional.isPresent()) {
-            int userId = userIdOptional.get();
+        Optional<String> username = jwtUtil.verifyToken(jwtToken);
+        if (username.isPresent()) {
+            int userId = jwtUtil.extractUserId(jwtToken);
             return ResponseEntity.ok(userId);
         } else {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid token");

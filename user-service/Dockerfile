@@ -2,7 +2,7 @@ FROM openjdk:23-slim
 
 WORKDIR /app
 
-COPY target/user-service-0.0.1-SNAPSHOT.jar app.jar
+COPY /user-service-0.0.1-SNAPSHOT.jar app.jar
 
 EXPOSE 8080
 
