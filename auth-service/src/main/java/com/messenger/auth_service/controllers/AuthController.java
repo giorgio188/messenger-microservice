@@ -64,14 +64,13 @@ public class AuthController {
 
     @PostMapping("/verify")
     public ResponseEntity<?> validateToken(@RequestHeader("Authorization") String token) {
-        if (token == null) {
+        if (token == null || token.isEmpty()) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Token is missing");
         }
         String jwtToken = token.startsWith("Bearer ") ? token.substring(7) : token;
         Optional<String> username = jwtUtil.verifyToken(jwtToken);
         if (username.isPresent()) {
-            int userId = jwtUtil.extractUserId(jwtToken);
-            return ResponseEntity.ok(userId);
+            return ResponseEntity.ok().build();
         } else {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid token");
         }

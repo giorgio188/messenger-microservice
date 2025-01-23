@@ -22,7 +22,7 @@ import java.util.Optional;
 public class JWTFilter extends OncePerRequestFilter{
 
     private final JWTUtil jwtUtil;
-    private final UserProfileDetailsService userProfileDetailsService;
+    private final UserProfileDetailsService  userProfileDetailsService;
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response,

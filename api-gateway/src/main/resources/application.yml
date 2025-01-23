@@ -1,6 +1,10 @@
 Server:
   port: 8081
-
+logging:
+  level:
+    root: INFO
+    org.springframework.cloud.gateway: DEBUG
+    com.messenger.api_gateway: DEBUG
 spring:
   main:
     web-application-type: reactive
@@ -14,16 +18,16 @@ spring:
     gateway:
       routes:
         - id: auth-service
-          uri: lb://auth-service
+          uri: http://auth-service:8082
           predicates:
-            - Path=api/auth/**
+            - Path=/api/auth/**
         - id: user-service
-          uri: lb://user-service
+          uri: http://user-service:8083
           filters:
-            - name: JWTAuthenticationFilterFactory
+            - name: AuthenticationFilter
           predicates:
-            - Path=api/user/**
-            - Path=api/friends/**
+            - Path=/api/user/**
+
     kubernetes:
       discovery:
         enabled: true

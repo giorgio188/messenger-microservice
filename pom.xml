@@ -7,7 +7,7 @@
 	<groupId>com.messenger</groupId>
 	<artifactId>microservices-parent</artifactId>
 	<version>1.0.0</version>
-	<packaging>pom</packaging> <!-- Указываем, что это родительский проект -->
+	<packaging>pom</packaging>
 
 	<modules>
 		<module>api-gateway</module>
@@ -16,14 +16,17 @@
 	</modules>
 
 	<properties>
-		<java.version>23</java.version> <!-- Используем поддерживаемую версию Java -->
-		<spring-cloud.version>2023.0.0</spring-cloud.version>
+		<maven.compiler.source>22</maven.compiler.source> <!-- или выше -->
+		<maven.compiler.target>22</maven.compiler.target>
+		<java.version>22</java.version> <!-- Используем поддерживаемую версию Java -->
+		<spring-cloud.version>2024.0.0</spring-cloud.version>
 		<spring-cloud-kubernetes.version>3.2.0</spring-cloud-kubernetes.version>
-		<lombok.version>1.18.32</lombok.version>
+		<lombok.version>1.18.36</lombok.version>
 		<spring-boot.version>3.4.1</spring-boot.version>
 		<postgresql.version>42.7.4</postgresql.version>
 		<jackson-datatype-jsr310.version>2.18.2</jackson-datatype-jsr310.version>
 		<java-jwt.version>4.4.0</java-jwt.version>
+		<spring-web.version>6.2.1</spring-web.version>
 	</properties>
 
 	<dependencyManagement>
@@ -51,6 +54,11 @@
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-starter-web</artifactId>
 				<version>${spring-boot.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.springframework</groupId>
+				<artifactId>spring-web</artifactId>
+				<version>${spring-web.version}</version>
 			</dependency>
 			<dependency>
 				<groupId>org.springframework.boot</groupId>
@@ -96,7 +104,10 @@
 	</dependencyManagement>
 
 	<dependencies>
-		<!-- Общие зависимости для всех дочерних проектов -->
+		<dependency>
+			<groupId>org.springframework</groupId>
+			<artifactId>spring-web</artifactId>
+		</dependency>
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-web</artifactId>
@@ -130,7 +141,6 @@
 		<dependency>
 			<groupId>org.projectlombok</groupId>
 			<artifactId>lombok</artifactId>
-			<scope>provided</scope>
 		</dependency>
 		<dependency>
 			<groupId>com.fasterxml.jackson.datatype</groupId>
@@ -150,7 +160,6 @@
 			<artifactId>spring-dotenv</artifactId>
 			<version>4.0.0</version>
 		</dependency>
-
 <!--		<dependency>-->
 <!--			<groupId>org.springframework.cloud</groupId>-->
 <!--			<artifactId>spring-cloud-starter-kubernetes-client-config</artifactId>-->
@@ -170,6 +179,22 @@
 			<plugin>
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-maven-plugin</artifactId>
+				<executions>
+					<execution>
+						<goals>
+							<goal>repackage</goal> <!-- Добавьте эту цель -->
+						</goals>
+					</execution>
+				</executions>
+				<configuration>
+					<annotationProcessorPaths>
+						<path>
+							<groupId>org.projectlombok</groupId>
+							<artifactId>lombok</artifactId>
+							<version>${lombok.version}</version>
+						</path>
+					</annotationProcessorPaths>
+				</configuration>
 			</plugin>
 		</plugins>
 	</build>

@@ -1,12 +1,26 @@
-version: '3.8'
-
 services:
+
+  user-friends-db:
+      image: postgres:17
+      container_name: user-friends-db
+      environment:
+        POSTGRES_DB: db
+        POSTGRES_USER: postgres
+        POSTGRES_PASSWORD: postgres
+      ports:
+        - "5432:5432"
+      volumes:
+        - db_data:/var/lib/postgresql/data
+        - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+      networks:
+        - microservices-network
+
   api-gateway:
     build:
       context: ./api-gateway
       dockerfile: Dockerfile
     ports:
-      - "8081:8080"
+      - "8081:8081"
     environment:
       - SPRING_PROFILES_ACTIVE=docker
     networks:
@@ -17,23 +31,40 @@ services:
       context: ./auth-service
       dockerfile: Dockerfile
     ports:
-      - "8082:8080"
+      - "8082:8082"
     environment:
       - SPRING_PROFILES_ACTIVE=docker
+      - DATABASE_AUTH_USER_URL=jdbc:postgresql://user-friends-db:5432/db
+      - DATABASE_USERNAME=postgres
+      - DATABASE_PASSWORD=postgres
+      - JWT_SECRET=${JWT_SECRET}
     networks:
       - microservices-network
+
 
   user-service:
     build:
       context: ./user-service
       dockerfile: Dockerfile
     ports:
-      - "8083:8080"
+      - "8083:8083"
     environment:
       - SPRING_PROFILES_ACTIVE=docker
+      - DATABASE_AUTH_USER_URL=jdbc:postgresql://user-friends-db:5432/db
+      - DATABASE_USERNAME=postgres
+      - DATABASE_PASSWORD=postgres
+      - JWT_SECRET=${JWT_SECRET}
+      - AWS_ACCESS_KEY=${AWS_ACCESS_KEY}
+      - AWS_SECRET_KEY=${AWS_SECRET_KEY}
+      - AWS_REGION=${AWS_REGION}
+      - AWS_BUCKET=${AWS_BUCKET}
     networks:
       - microservices-network
+
 
 networks:
   microservices-network:
     driver: bridge
+
+volumes:
+  db_data:
