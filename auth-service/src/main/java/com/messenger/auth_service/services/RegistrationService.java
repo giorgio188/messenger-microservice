@@ -25,7 +25,6 @@ public class RegistrationService {
     public void register(UserProfile userProfile) {
         userProfile.setPassword(passwordEncoder.encode(userProfile.getPassword()));
         log.info("Registering user: " + userProfile.getUsername());
-        userProfile.setCreatedAt(LocalDateTime.now());
         userProfile.setStatus(ProfileStatus.ONLINE);
         userProfileRepository.save(userProfile);
     }

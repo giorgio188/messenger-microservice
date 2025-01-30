@@ -1,17 +1,18 @@
 services:
 
-  user-friends-db:
+  auth_user_friends_db:
       image: postgres:17
-      container_name: user-friends-db
+      container_name: auth_user_friends_db
       environment:
-        POSTGRES_DB: db
-        POSTGRES_USER: postgres
-        POSTGRES_PASSWORD: postgres
+        - POSTGRES_DB=${DATABASE_1_NAME}
+        - POSTGRES_USER=${DATABASE_1_USERNAME}
+        - POSTGRES_PASSWORD=${DATABASE_1_PASSWORD}
+        - POSTGRES_ADMIN_PASSWORD=${POSTGRES_PASSWORD}
       ports:
         - "5432:5432"
       volumes:
         - db_data:/var/lib/postgresql/data
-        - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+        - ./user-friends-db.sql:/docker-entrypoint-initdb.d/init.sql
       networks:
         - microservices-network
 
@@ -20,39 +21,43 @@ services:
       context: ./api-gateway
       dockerfile: Dockerfile
     ports:
-      - "8081:8081"
+      - "8080:8080"
     environment:
       - SPRING_PROFILES_ACTIVE=docker
     networks:
       - microservices-network
+    depends_on:
+      - auth_user_friends_db
 
   auth-service:
     build:
       context: ./auth-service
       dockerfile: Dockerfile
     ports:
-      - "8082:8082"
+      - "8081:8081"
     environment:
       - SPRING_PROFILES_ACTIVE=docker
-      - DATABASE_AUTH_USER_URL=jdbc:postgresql://user-friends-db:5432/db
-      - DATABASE_USERNAME=postgres
-      - DATABASE_PASSWORD=postgres
+      - DATABASE_1_URL=jdbc:postgresql://auth_user_friends_db:5432/${DATABASE_1_NAME}
+      - DATABASE_1_USERNAME=${DATABASE_1_USERNAME}
+      - DATABASE_1_PASSWORD=${DATABASE_1_PASSWORD}
+
       - JWT_SECRET=${JWT_SECRET}
     networks:
       - microservices-network
-
+    depends_on:
+      - auth_user_friends_db
 
   user-service:
     build:
       context: ./user-service
       dockerfile: Dockerfile
     ports:
-      - "8083:8083"
+      - "8082:8082"
     environment:
       - SPRING_PROFILES_ACTIVE=docker
-      - DATABASE_AUTH_USER_URL=jdbc:postgresql://user-friends-db:5432/db
-      - DATABASE_USERNAME=postgres
-      - DATABASE_PASSWORD=postgres
+      - DATABASE_1_URL=jdbc:postgresql://auth_user_friends_db:5432/${DATABASE_1_NAME}
+      - DATABASE_1_USERNAME=${DATABASE_1_USERNAME}
+      - DATABASE_1_PASSWORD=${DATABASE_1_PASSWORD}
       - JWT_SECRET=${JWT_SECRET}
       - AWS_ACCESS_KEY=${AWS_ACCESS_KEY}
       - AWS_SECRET_KEY=${AWS_SECRET_KEY}
@@ -60,7 +65,8 @@ services:
       - AWS_BUCKET=${AWS_BUCKET}
     networks:
       - microservices-network
-
+    depends_on:
+      - auth_user_friends_db
 
 networks:
   microservices-network:

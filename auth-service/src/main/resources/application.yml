@@ -1,5 +1,6 @@
 server:
-  port: 8082
+  port: 8081
+
 spring:
   application:
     name: auth-service
@@ -8,9 +9,9 @@ spring:
       discovery:
         enabled: true
   datasource:
-    url: ${DATABASE_AUTH_USER_URL}
-    username: ${DATABASE_USERNAME}
-    password: ${DATABASE_PASSWORD}
+    url: ${DATABASE_1_URL}
+    username: ${DATABASE_1_USERNAME}
+    password: ${DATABASE_1_PASSWORD}
     driver-class-name: org.postgresql.Driver
 
   jpa:

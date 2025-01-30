@@ -48,7 +48,7 @@ public class AuthenticationFilter extends AbstractGatewayFilterFactory<Authentic
 
             return webClientBuilder.build()
                     .post()
-                    .uri("http://auth-service:8082/api/auth/verify")
+                    .uri("http://auth-service:8081/api/auth/verify")
                     .header(HttpHeaders.AUTHORIZATION, token)
                     .retrieve()
                     .toBodilessEntity()
