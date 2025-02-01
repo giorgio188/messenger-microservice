@@ -67,11 +67,13 @@ public class AuthController {
         if (token == null || token.isEmpty()) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Token is missing");
         }
+
         String jwtToken = token.startsWith("Bearer ") ? token.substring(7) : token;
-        Optional<String> username = jwtUtil.verifyToken(jwtToken);
-        if (username.isPresent()) {
-            return ResponseEntity.ok().build();
-        } else {
+
+        try {
+            int userId = jwtUtil.extractUserId(jwtToken);
+            return ResponseEntity.ok(userId);
+        } catch (IllegalArgumentException e) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid token");
         }
     }

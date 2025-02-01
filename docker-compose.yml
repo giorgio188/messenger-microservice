@@ -12,7 +12,7 @@ services:
         - "5432:5432"
       volumes:
         - db_data:/var/lib/postgresql/data
-        - ./user-friends-db.sql:/docker-entrypoint-initdb.d/init.sql
+        - ./user-service.sql:/docker-entrypoint-initdb.d/init.sql
       networks:
         - microservices-network
 

@@ -1,16 +1,19 @@
 package com.messenger.user_service.services;
 
+import com.messenger.user_service.dto.FriendDTO;
 import com.messenger.user_service.models.FriendList;
 import com.messenger.user_service.models.UserProfile;
 import com.messenger.user_service.repositories.FriendListRepository;
 import com.messenger.user_service.repositories.UserProfileRepository;
 import lombok.RequiredArgsConstructor;
+import org.modelmapper.ModelMapper;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -19,8 +22,9 @@ public class FriendListService {
     private final FriendListRepository friendListRepository;
     private final UserProfileRepository userProfileRepository;
     private final SimpMessagingTemplate messagingTemplate;
+    private final ModelMapper modelMapper;
 
-    public List<UserProfile> getFriendList(int userId) {
+    public List<FriendDTO> getFriendList(int userId) {
         UserProfile userProfile = userProfileRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
         List<FriendList> friendsAsUser = friendListRepository.findByUserId(userProfile);
@@ -28,7 +32,9 @@ public class FriendListService {
         Set<UserProfile> friendsSet = new HashSet<>();
         friendsAsUser.forEach(friendList -> friendsSet.add(friendList.getFriendId()));
         friendsAsFriend.forEach(friendList -> friendsSet.add(friendList.getUserId()));
-        return new ArrayList<>(friendsSet);
+        return friendsSet.stream()
+                .map(userProfileObj -> modelMapper.map(userProfileObj, FriendDTO.class))
+                .collect(Collectors.toList());
     }
 
     @Transactional

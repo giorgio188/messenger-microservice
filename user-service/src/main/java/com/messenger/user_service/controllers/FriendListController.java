@@ -1,10 +1,12 @@
 package com.messenger.user_service.controllers;
 
 
+import com.messenger.user_service.dto.FriendDTO;
 import com.messenger.user_service.models.UserProfile;
 import com.messenger.user_service.services.FriendListService;
-import com.messenger.user_service.utils.JWTUtil;
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.Payload;
@@ -21,11 +23,10 @@ import java.util.Map;
 public class FriendListController {
 
     private final FriendListService friendListService;
-    private final JWTUtil jwtUtil;
 
     @GetMapping("/{userId}")
-    public ResponseEntity<List<UserProfile>> getFriendList(@PathVariable int userId) {
-        List<UserProfile> friendList = friendListService.getFriendList(userId);
+    public ResponseEntity<List<FriendDTO>> getFriendList(@PathVariable int userId) {
+        List<FriendDTO> friendList = friendListService.getFriendList(userId);
         return ResponseEntity.ok(friendList);
     }
 
@@ -33,28 +34,33 @@ public class FriendListController {
     @MessageMapping("/friend.add")
     public void handleAddFriend(@Payload Map<String, Object> payload,
                                 SimpMessageHeaderAccessor headerAccessor) {
-        String token = headerAccessor.getFirstNativeHeader("Authorization");
-        if (token != null && token.startsWith("Bearer ")) {
-            int userId = jwtUtil.extractUserId(token.replace("Bearer ", ""));
-            int friendId = (Integer) payload.get("friendId");
+        String userIdStr = headerAccessor.getFirstNativeHeader("X-User-Id");
+        if (userIdStr != null) {
             try {
+                int userId = Integer.parseInt(userIdStr);
+                int friendId = (Integer) payload.get("friendId");
                 friendListService.addFriend(userId, friendId);
+            } catch (NumberFormatException e) {
+                Logger logger = LoggerFactory.getLogger(this.getClass());
+                logger.error("Failed to parse X-User-Id '{}' as an integer", userIdStr, e);
             } catch (Exception e) {
                 throw new RuntimeException("Failed to add friend: " + e.getMessage());
             }
         }
     }
 
-    // WebSocket endpoint для удаления друга
     @MessageMapping("/friend.delete")
     public void handleDeleteFriend(@Payload Map<String, Object> payload,
                                    SimpMessageHeaderAccessor headerAccessor) {
-        String token = headerAccessor.getFirstNativeHeader("Authorization");
-        if (token != null && token.startsWith("Bearer ")) {
-            int userId = jwtUtil.extractUserId(token.replace("Bearer ", ""));
-            int friendId = (Integer) payload.get("friendId");
+        String userIdStr = headerAccessor.getFirstNativeHeader("X-User-Id");
+        if (userIdStr != null) {
             try {
+                int userId = Integer.parseInt(userIdStr);
+                int friendId = (Integer) payload.get("friendId");
                 friendListService.deleteFriend(userId, friendId);
+            } catch (NumberFormatException e) {
+                Logger logger = LoggerFactory.getLogger(this.getClass());
+                logger.error("Failed to parse X-User-Id '{}' as an integer", userIdStr, e);
             } catch (Exception e) {
                 throw new RuntimeException("Failed to delete friend: " + e.getMessage());
             }

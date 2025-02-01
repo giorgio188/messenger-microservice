@@ -19,10 +19,6 @@ spring:
     hibernate:
       ddl-auto: update
 
-  # Security
-  jwt:
-    secret: ${JWT_SECRET}
-
   logging:
     level:
       root: INFO
