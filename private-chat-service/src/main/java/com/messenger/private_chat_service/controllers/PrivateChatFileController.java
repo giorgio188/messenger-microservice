@@ -17,7 +17,6 @@ import java.util.List;
 public class PrivateChatFileController {
 
     private final PrivateChatFileService privateChatFileService;
-    private final JWTUtil jwtUtil;
 
     @GetMapping("/{privateChatId}")
     public ResponseEntity<List<PrivateChatFiles>> getPrivateChatFiles(@PathVariable int privateChatId) {
@@ -26,18 +25,24 @@ public class PrivateChatFileController {
     }
 
     @PostMapping("/{privateChatId}")
-    public ResponseEntity<PrivateChatFiles> sendPrivateChatFile(@RequestHeader("Authorization") String token,
+    public ResponseEntity<PrivateChatFiles> sendPrivateChatFile(@RequestHeader("X-User-Id") int senderId,
                                                                 @PathVariable int privateChatId,
                                                                 @RequestParam MultipartFile file) {
-        int senderId = jwtUtil.extractUserId(token.replace("Bearer ", ""));
         PrivateChatFiles privateChatFile = privateChatFileService.sendPrivateChatFile(senderId, privateChatId, file);
         return ResponseEntity.ok(privateChatFile);
     }
 
     @DeleteMapping("/{fileId}")
-    public ResponseEntity<String> deletePrivateChatFile(@PathVariable int fileId) {
-        privateChatFileService.deletePrivateChatFile(fileId);
-        return ResponseEntity.ok("File deleted");
+    public ResponseEntity<String> deletePrivateChatFile(@PathVariable int fileId,
+                                                        @RequestHeader("X-User-Id") int userId) {
+        int senderId = privateChatFileService.getFileById(fileId).getSenderId();
+        if (senderId == userId) {
+            privateChatFileService.deletePrivateChatFile(fileId);
+            return ResponseEntity.ok("File deleted");
+        } else {
+            throw new RuntimeException("Current user is not authorized to delete file");
+        }
+
     }
 
 }

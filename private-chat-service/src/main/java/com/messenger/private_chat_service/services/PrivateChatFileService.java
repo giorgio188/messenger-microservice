@@ -1,6 +1,9 @@
 package com.messenger.private_chat_service.services;
 
 
+import com.messenger.private_chat_service.models.PrivateChat;
+import com.messenger.private_chat_service.models.PrivateChatFiles;
+import com.messenger.private_chat_service.models.enums.FileType;
 import com.messenger.private_chat_service.repositories.PrivateChatFileRepository;
 import com.messenger.private_chat_service.repositories.PrivateChatRepository;
 import jakarta.persistence.EntityNotFoundException;
@@ -24,7 +27,6 @@ public class PrivateChatFileService {
     private final S3Service s3Service;
     private final PrivateChatFileRepository privateChatFileRepository;
     private final PrivateChatRepository privateChatRepository;
-    private final UserProfileService userProfileService;
     private static final String FILE_DIRECTORY = "private-files";
     private final SimpMessagingTemplate messagingTemplate;
 
@@ -40,17 +42,15 @@ public class PrivateChatFileService {
     public PrivateChatFiles sendPrivateChatFile(int senderId, int privateChatId, MultipartFile file) {
         PrivateChat privateChat = privateChatRepository.findById(privateChatId)
                 .orElseThrow(() -> new RuntimeException("Чат не найден"));
-        UserProfile sender = userProfileService.getUserProfile(senderId);
-        UserProfile receiver = privateChat.getSender().getId() == senderId
-                ? privateChat.getReceiver()
-                : privateChat.getSender();
+        int receiverId = privateChat.getSenderId() == senderId
+                ? privateChat.getReceiverId()
+                : privateChat.getSenderId();
         FileType fileType = FileType.getByContentType(file.getContentType())
                 .orElseThrow(() -> new RuntimeException("Неподдерживаемый формат файла: " + file.getContentType()));
         String fileName = file.getOriginalFilename();
         int size = (int) file.getSize();
         String filePath = s3Service.uploadFile(file, FILE_DIRECTORY);
-        PrivateChatFiles privateChatFiles = new PrivateChatFiles(privateChat, sender, receiver,
-                LocalDateTime.now(), fileName, filePath, fileType, size);
+        PrivateChatFiles privateChatFiles = new PrivateChatFiles(privateChat, senderId, receiverId, fileName, filePath, fileType, size);
         FileType.getByContentType(file.getContentType());
         PrivateChatFiles savedFile = privateChatFileRepository.save(privateChatFiles);
 
@@ -73,7 +73,7 @@ public class PrivateChatFileService {
 
         // Отправляем уведомление получателю
         messagingTemplate.convertAndSendToUser(
-                String.valueOf(receiver.getId()),
+                String.valueOf(receiverId),
                 "/queue/private-file/" + privateChatId,
                 fileNotification
         );
@@ -97,13 +97,13 @@ public class PrivateChatFileService {
 
             // Отправляем уведомление обоим участникам чата
             messagingTemplate.convertAndSendToUser(
-                    String.valueOf(file.getSender().getId()),
+                    String.valueOf(file.getSenderId()),
                     "/queue/private-file/" + file.getPrivateChat().getId(),
                     deleteNotification
             );
 
             messagingTemplate.convertAndSendToUser(
-                    String.valueOf(file.getReceiver().getId()),
+                    String.valueOf(file.getReceiverId()),
                     "/queue/private-file/" + file.getPrivateChat().getId(),
                     deleteNotification
             );
@@ -112,10 +112,15 @@ public class PrivateChatFileService {
         } else throw new EntityNotFoundException("File with id " + fileId + " not found");
     }
 
-    public String getFileById(int fileId){
+    public String getFileLinkById(int fileId){
         PrivateChatFiles file = privateChatFileRepository.findById(fileId).orElse(null);
         if(file != null){
             return s3Service.getFileUrl(file.getFileName());
         } else throw new EntityNotFoundException("No such file");
     }
+
+    public PrivateChatFiles getFileById(int fileId){
+        return privateChatFileRepository.findById(fileId).orElse(null);
+    }
+
 }

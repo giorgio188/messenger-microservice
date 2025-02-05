@@ -4,6 +4,7 @@ package com.messenger.private_chat_service.services;
 import com.messenger.private_chat_service.dto.PrivateChatMessageDTO;
 import com.messenger.private_chat_service.models.PrivateChat;
 import com.messenger.private_chat_service.models.PrivateChatMessage;
+import com.messenger.private_chat_service.models.enums.MessageStatus;
 import com.messenger.private_chat_service.repositories.PrivateChatMessageRepository;
 import com.messenger.private_chat_service.repositories.PrivateChatRepository;
 import com.messenger.private_chat_service.utils.MapperForDTO;
@@ -22,40 +23,37 @@ import java.util.*;
 public class PrivateChatMessageService {
 
     private final PrivateChatMessageRepository privateChatMessageRepository;
-    private final UserProfileService userProfileService;
     private final EncryptionService encryptionService;
     private final PrivateChatRepository privateChatRepository;
     private final SimpMessagingTemplate messagingTemplate;
     private final MapperForDTO mapperForDTO;
 
-
+    public PrivateChatMessageDTO getPrivateChatMessage(int privateChatMessageId) {
+        return mapperForDTO.convertPrivateMessageToDTO(privateChatMessageRepository.findById(privateChatMessageId).orElseThrow(EntityNotFoundException::new));
+    }
 
     @Transactional
     public PrivateChatMessageDTO sendMessage(int senderId, int privateChatId, String message) {
         PrivateChat privateChat = privateChatRepository.findById(privateChatId)
-                .orElseThrow(() -> new RuntimeException("Чат не найден"));
-        UserProfile sender = userProfileService.getUserProfile(senderId);
-        UserProfile receiver = privateChat.getSender().getId() == senderId
-                ? privateChat.getReceiver()
-                : privateChat.getSender();
+                .orElseThrow(() -> new RuntimeException("Private chat not found"));
+
+        int receiverId = privateChat.getSenderId() == senderId
+                ? privateChat.getReceiverId()
+                : privateChat.getSenderId();
         String encryptedMessage = encryptionService.encrypt(message);
-        PrivateChatMessage privateChatMessage = new PrivateChatMessage(privateChat, sender, receiver,
-                LocalDateTime.now(), encryptedMessage, MessageStatus.SENT);
+        PrivateChatMessage privateChatMessage = new PrivateChatMessage(privateChat, senderId, receiverId, encryptedMessage, MessageStatus.SENT);
         privateChatMessageRepository.save(privateChatMessage);
         PrivateChatMessageDTO messageDTO = mapperForDTO.convertPrivateMessageToDTO(privateChatMessage);
         messageDTO.setMessage(message);
 
-
-        // Отправляем уведомление отправителю для мгновенного обновления его интерфейса
         messagingTemplate.convertAndSendToUser(
                 String.valueOf(senderId),
                 "/queue/private-messages/" + privateChatId,
                 messageDTO
         );
 
-        // Отправляем уведомление получателю
         messagingTemplate.convertAndSendToUser(
-                String.valueOf(receiver.getId()),
+                String.valueOf(receiverId),
                 "/queue/private-messages/" + privateChatId,
                 messageDTO
         );
@@ -127,7 +125,7 @@ public class PrivateChatMessageService {
             editNotification.put("chatId", chat.getId());
             editNotification.put("status", MessageStatus.EDITED);
             editNotification.put("timestamp", LocalDateTime.now());
-            editNotification.put("senderId", message.getSender().getId());
+            editNotification.put("senderId", message.getSenderId());
 
             // Уведомляем обоих участников чата об изменении сообщения
             messagingTemplate.convertAndSend(
@@ -173,9 +171,9 @@ public class PrivateChatMessageService {
                     .toList());
 
             // Получаем ID другого участника чата
-            int otherUserId = (chat.getSender().getId() == readerId)
-                    ? chat.getReceiver().getId()
-                    : chat.getSender().getId();
+            int otherUserId = (chat.getSenderId() == readerId)
+                    ? chat.getReceiverId()
+                    : chat.getSenderId();
 
             // Отправляем уведомление отправителю сообщений
             messagingTemplate.convertAndSendToUser(

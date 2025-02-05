@@ -14,7 +14,6 @@ public class PrivateChatDTO {
     private int receiverId;
     private String receiverUsername;
     private String receiverNickname;
-
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime createdAt;
 }

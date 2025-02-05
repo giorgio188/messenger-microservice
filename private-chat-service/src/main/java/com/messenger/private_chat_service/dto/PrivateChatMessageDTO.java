@@ -12,6 +12,7 @@ public class PrivateChatMessageDTO {
     private int senderId;
     private String senderUsername;
     private String senderNickname;
+    private int receiverId;
     private String receiverUsername;
     private String receiverNickname;
     private String message;

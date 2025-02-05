@@ -134,6 +134,12 @@ public class UserProfileController {
         }
     }
 
+    @GetMapping("/exists/{userId}")
+    public ResponseEntity<Boolean> checkUserExists(@PathVariable int userId) {
+        boolean exists = userProfileService.existsById(userId);
+        return ResponseEntity.ok(exists);
+    }
+
 
 }
 //    @GetMapping("/avatar")

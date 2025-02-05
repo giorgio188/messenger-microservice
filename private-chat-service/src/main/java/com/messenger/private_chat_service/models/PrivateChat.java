@@ -22,20 +22,13 @@ public class PrivateChat {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
 
-    @ManyToOne
-    @JoinColumn(name = "sender_id", referencedColumnName = "id")
-    @JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "id")
-    @JsonIdentityReference(alwaysAsId = true)
-    private UserProfile sender;
+    @JoinColumn(name = "sender_id")
+    private int senderId;
 
-    @ManyToOne
-    @JoinColumn(name = "receiver_id", referencedColumnName = "id")
-    @JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "id")
-    @JsonIdentityReference(alwaysAsId = true)
-    private UserProfile receiver;
+    @JoinColumn(name = "receiver_id")
+    private int receiverId;
 
     @Column(name = "created_at")
-    @JsonBackReference
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime createdAt;
 
@@ -47,9 +40,8 @@ public class PrivateChat {
     @JsonBackReference
     private List<PrivateChatMessage> privateChatMessages;
 
-    public PrivateChat(UserProfile sender, UserProfile receiver, LocalDateTime createdAt) {
-        this.sender = sender;
-        this.receiver = receiver;
-        this.createdAt = createdAt;
+    public PrivateChat(int senderId, int receiverId) {
+        this.senderId = senderId;
+        this.receiverId = receiverId;
     }
 }

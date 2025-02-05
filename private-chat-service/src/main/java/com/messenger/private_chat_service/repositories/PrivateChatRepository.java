@@ -11,7 +11,7 @@ import java.util.Optional;
 @Repository
 public interface PrivateChatRepository extends JpaRepository<PrivateChat, Integer> {
     Optional<PrivateChat> findPrivateChatById(int id);
-    PrivateChat findPrivateChatBySenderAndReceiver(UserProfile sender, UserProfile receiver);
-    List<PrivateChat> findPrivateChatBySender(UserProfile sender);
-    List<PrivateChat> findPrivateChatByReceiver(UserProfile receiver);
+    PrivateChat findPrivateChatBySenderAndReceiver(int senderId, int receiverId);
+    List<PrivateChat> findPrivateChatBySender(int senderId);
+    List<PrivateChat> findPrivateChatByReceiver(int receiverId);
 }

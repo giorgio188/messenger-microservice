@@ -1,7 +1,7 @@
 package com.messenger.private_chat_service.models;
 
 import com.fasterxml.jackson.annotation.*;
-import com.project.messenger.models.enums.FileType;
+import com.messenger.private_chat_service.models.enums.FileType;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -29,19 +29,11 @@ public class PrivateChatFiles {
     @JsonIdentityReference(alwaysAsId = true)
     private PrivateChat privateChat;
 
-    @ManyToOne
-    @JoinColumn(name = "sender_id", referencedColumnName = "id")
-    @JsonProperty("senderId")
-    @JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "id")
-    @JsonIdentityReference(alwaysAsId = true)
-    private UserProfile sender;
+    @JoinColumn(name = "sender_id")
+    private int senderId;
 
-    @ManyToOne
-    @JoinColumn(name = "receiver_id", referencedColumnName = "id")
-    @JsonProperty("receiverId")
-    @JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "id")
-    @JsonIdentityReference(alwaysAsId = true)
-    private UserProfile receiver;
+    @JoinColumn(name = "receiver_id")
+    private int receiverId;
 
     @Column(name = "sent_at")
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss")
@@ -61,13 +53,10 @@ public class PrivateChatFiles {
     @Column(name = "size")
     private int size;
 
-    public PrivateChatFiles(PrivateChat privateChat, UserProfile sender, UserProfile receiver,
-                            LocalDateTime sentAt, String fileName, String filePath,
-                            FileType type, int size) {
+    public PrivateChatFiles(PrivateChat privateChat, int senderId, int receiverId, String fileName, String filePath, FileType type, int size) {
         this.privateChat = privateChat;
-        this.sender = sender;
-        this.receiver = receiver;
-        this.sentAt = sentAt;
+        this.senderId = senderId;
+        this.receiverId = receiverId;
         this.fileName = fileName;
         this.filePath = filePath;
         this.type = type;

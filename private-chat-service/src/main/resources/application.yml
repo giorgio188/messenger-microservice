@@ -1,6 +1,8 @@
 server:
   port: 8083
-
+api:
+  gateway:
+    url: ${GATEWAY_URL}
 spring:
   application:
     name: private-chat-service

@@ -2,10 +2,11 @@ package com.messenger.private_chat_service.services;
 
 
 import com.messenger.private_chat_service.dto.PrivateChatDTO;
-import com.messenger.private_chat_service.dto.UserUtilDTO;
+import com.messenger.private_chat_service.dto.UserProfileDTO;
 import com.messenger.private_chat_service.models.PrivateChat;
 import com.messenger.private_chat_service.repositories.PrivateChatRepository;
 import com.messenger.private_chat_service.utils.MapperForDTO;
+import com.messenger.private_chat_service.utils.UserInfoUtil;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
@@ -13,7 +14,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.nio.file.AccessDeniedException;
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -23,48 +23,43 @@ import java.util.Optional;
 @Transactional(readOnly = true)
 public class PrivateChatService {
 
-    private final UserProfileRepository userProfileRepository;
     private final PrivateChatRepository privateChatRepository;
     private final SimpMessagingTemplate messagingTemplate;
     private final MapperForDTO mapperForDTO;
+    private final UserInfoUtil userInfoUtil;
 
 
     public PrivateChatDTO getPrivateChatBySenderAndReceiver(int senderId, int receiverId) {
-        UserProfile sender = userProfileRepository.findById(senderId).orElse(null);
-        UserProfile receiver = userProfileRepository.findById(receiverId).orElse(null);
-
-        PrivateChat privateChat = privateChatRepository.findPrivateChatBySenderAndReceiver(sender, receiver);
-        if (privateChat == null) {
-            PrivateChat privateChat2 = privateChatRepository.findPrivateChatBySenderAndReceiver(receiver, sender);
-            if (privateChat2 == null) {
-                return null;
+        if (userInfoUtil.ifUserExists(senderId) && userInfoUtil.ifUserExists(receiverId)) {
+            PrivateChat privateChat = privateChatRepository.findPrivateChatBySenderAndReceiver(senderId, receiverId);
+            if (privateChat == null) {
+                PrivateChat privateChat2 = privateChatRepository.findPrivateChatBySenderAndReceiver(receiverId, senderId);
+                if (privateChat2 == null) {
+                    return null;
+                }
+                return mapperForDTO.convertPrivateChatToDto(privateChat2);
             }
-            return mapperForDTO.convertPrivateChatToDto(privateChat2);
+            return mapperForDTO.convertPrivateChatToDto(privateChat);
+        } else {
+            throw new EntityNotFoundException("One of the users doesn't exist");
         }
-        return mapperForDTO.convertPrivateChatToDto(privateChat);
     }
 
     public PrivateChatDTO getPrivateChat(int chatId, int senderId) throws AccessDeniedException {
         PrivateChat privateChat = privateChatRepository.findById(chatId)
                 .orElseThrow(() -> new EntityNotFoundException("Private chat not found"));
 
-        if (privateChat.getSender().getId() != senderId &&
-                privateChat.getReceiver().getId() != senderId) {
+        if (privateChat.getSenderId() != senderId &&
+                privateChat.getReceiverId() != senderId) {
             throw new AccessDeniedException("User is not a participant of this chat");
         }
         return mapperForDTO.convertPrivateChatToDto(privateChat);
     }
 
-    // Метод для получения ID чата по участникам
     public int getChatId(int senderId, int receiverId) {
-        UserProfile sender = userProfileRepository.findById(senderId)
-                .orElseThrow(() -> new EntityNotFoundException("Sender not found"));
-        UserProfile receiver = userProfileRepository.findById(receiverId)
-                .orElseThrow(() -> new EntityNotFoundException("Receiver not found"));
-
-        PrivateChat privateChat = privateChatRepository.findPrivateChatBySenderAndReceiver(sender, receiver);
+        PrivateChat privateChat = privateChatRepository.findPrivateChatBySenderAndReceiver(senderId, receiverId);
         if (privateChat == null) {
-            privateChat = privateChatRepository.findPrivateChatBySenderAndReceiver(receiver, sender);
+            privateChat = privateChatRepository.findPrivateChatBySenderAndReceiver(receiverId, senderId);
         }
         if (privateChat == null) {
             throw new EntityNotFoundException("Private chat not found");
@@ -72,37 +67,38 @@ public class PrivateChatService {
         return privateChat.getId();
     }
 
-    public List<UserUtilDTO> getPrivateChatParticipants(int chatId) {
+    public List<UserProfileDTO> getPrivateChatParticipants(int chatId) {
         Optional<PrivateChat> privateChat = privateChatRepository.findPrivateChatById(chatId);
         if (privateChat.isPresent()) {
-            UserUtilDTO sender = mapperForDTO.convertUserToDTO(privateChat.get().getSender());
-            UserUtilDTO receiver = mapperForDTO.convertUserToDTO(privateChat.get().getReceiver());
-            List<UserUtilDTO> participants = new ArrayList<>();
+            UserProfileDTO sender = userInfoUtil.getUserProfile(privateChat.get().getSenderId());
+            UserProfileDTO receiver = userInfoUtil.getUserProfile(privateChat.get().getReceiverId());
+            List<UserProfileDTO> participants = new ArrayList<>();
             participants.add(sender);
             participants.add(receiver);
             return participants;
         } else throw new EntityNotFoundException("Private chat not found");
     }
 
-    public List<PrivateChatDTO> getAllChatsOfOneUser(int id) {
-        Optional<UserProfile> userProfile = userProfileRepository.findById(id);
-        List<PrivateChat> allChatsAsSender = privateChatRepository.findPrivateChatBySender(userProfile.orElse(null));
-        List<PrivateChat> allChatsAsReceiver = privateChatRepository.findPrivateChatByReceiver(userProfile.orElse(null));
-        List<PrivateChat> allChats = new ArrayList<>();
-        allChats.addAll(allChatsAsSender);
-        allChats.addAll(allChatsAsReceiver);
-        List<PrivateChatDTO> allChatsDTO = new ArrayList<>();
-        for (PrivateChat privateChat : allChats) {
-            allChatsDTO.add(mapperForDTO.convertPrivateChatToDto(privateChat));
+    public List<PrivateChatDTO> getAllPrivateChatsOfUser(int userId) {
+        if (userInfoUtil.ifUserExists(userId)) {
+            List<PrivateChat> allChatsAsSender = privateChatRepository.findPrivateChatBySender(userId);
+            List<PrivateChat> allChatsAsReceiver = privateChatRepository.findPrivateChatByReceiver(userId);
+            List<PrivateChat> allChats = new ArrayList<>();
+            allChats.addAll(allChatsAsSender);
+            allChats.addAll(allChatsAsReceiver);
+            List<PrivateChatDTO> allChatsDTO = new ArrayList<>();
+            for (PrivateChat privateChat : allChats) {
+                allChatsDTO.add(mapperForDTO.convertPrivateChatToDto(privateChat));
+            }
+            return allChatsDTO;
+        }      else {
+            throw new EntityNotFoundException("User not found");
         }
-        return allChatsDTO;
     }
 
     @Transactional
     public void createPrivateChat(int senderId, int receiverId) {
-        UserProfile sender = userProfileRepository.findById(senderId).orElse(null);
-        UserProfile receiver = userProfileRepository.findById(receiverId).orElse(null);
-        PrivateChat privateChat = new PrivateChat(sender, receiver, LocalDateTime.now());
+        PrivateChat privateChat = new PrivateChat(senderId, receiverId);
         PrivateChat savedChat = privateChatRepository.save(privateChat);
         messagingTemplate.convertAndSend(
                 "/topic/chats/" + senderId,
@@ -119,7 +115,5 @@ public class PrivateChatService {
     public void deletePrivateChat(int id) {
         privateChatRepository.deleteById(id);
     }
-
-
 
 }

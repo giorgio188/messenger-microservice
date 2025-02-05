@@ -2,6 +2,7 @@ package com.messenger.private_chat_service.controllers;
 
 
 import com.messenger.private_chat_service.dto.PrivateChatMessageDTO;
+import com.messenger.private_chat_service.repositories.PrivateChatMessageRepository;
 import com.messenger.private_chat_service.services.PrivateChatMessageService;
 import com.messenger.private_chat_service.services.PrivateChatService;
 import lombok.RequiredArgsConstructor;
@@ -21,8 +22,8 @@ import java.util.Map;
 public class PrivateChatMessageController {
 
     private final PrivateChatMessageService privateChatMessageService;
-    private final JWTUtil jwtUtil;
     private final PrivateChatService privateChatService;
+    private final PrivateChatMessageRepository privateChatMessageRepository;
 
     @GetMapping("/{privateChatId}")
     public ResponseEntity<List<PrivateChatMessageDTO>> getPrivateChatMessages(@PathVariable int privateChatId) {
@@ -33,49 +34,72 @@ public class PrivateChatMessageController {
     @MessageMapping("/privateMessage.send")
     public void handlePrivateMessage(@Payload Map<String, Object> payload,
                                      SimpMessageHeaderAccessor headerAccessor) {
-        String token = headerAccessor.getFirstNativeHeader("Authorization");
-        if (token != null && token.startsWith("Bearer ")) {
-            int senderId = jwtUtil.extractUserId(token.replace("Bearer ", ""));
-            int chatId = (Integer) payload.get("chatId");
-            String message = (String) payload.get("message");
-
+        String senderIdStr = headerAccessor.getFirstNativeHeader("X-User-Id");
+        if (senderIdStr != null) {
             try {
-                privateChatMessageService.sendMessage(senderId, chatId, message);
+                int senderId = Integer.parseInt(senderIdStr);
+                int chatId = (Integer) payload.get("chatId");
+                String message = (String) payload.get("message");
+                try {
+                    privateChatMessageService.sendMessage(senderId, chatId, message);
+                } catch (Exception e) {
+                    throw new RuntimeException("Failed to send message: " + e.getMessage());
+                }
             } catch (Exception e) {
                 throw new RuntimeException("Failed to send message: " + e.getMessage());
             }
+
         }
     }
 
     @MessageMapping("/privateMessage.delete")
     public void handleDeleteMessage(@Payload Map<String, Object> payload,
                                     SimpMessageHeaderAccessor headerAccessor) {
-        String token = headerAccessor.getFirstNativeHeader("Authorization");
-        if (token != null && token.startsWith("Bearer ")) {
-            int messageId = (Integer) payload.get("messageId");
-            try {
-                privateChatMessageService.deletePrivateMessage(messageId);
-            } catch (Exception e) {
-                throw new RuntimeException("Failed to delete message: " + e.getMessage());
-            }
+            String userIdStr = headerAccessor.getFirstNativeHeader("X-User-Id");
+            if (userIdStr != null) {
+                try {
+                    int currentUserId = Integer.parseInt(userIdStr);
+                    int messageId = (Integer) payload.get("messageId");
+                    int senderId = privateChatMessageService.getPrivateChatMessage(messageId).getSenderId();
+                    if (senderId == currentUserId) {
+                        try {
+                            privateChatMessageService.deletePrivateMessage(messageId);
+                        } catch (Exception e) {
+                            throw new RuntimeException("Failed to delete message: " + e.getMessage());
+                        }
+                    }
+                } catch (Exception e) {
+                    throw new RuntimeException("Failed to delete message: " + e.getMessage());
+                }
         }
     }
 
     @MessageMapping("/privateMessage.edit")
     public void handleEditMessage(@Payload Map<String, Object> payload,
                                   SimpMessageHeaderAccessor headerAccessor) {
-        String token = headerAccessor.getFirstNativeHeader("Authorization");
-        if (token != null && token.startsWith("Bearer ")) {
-            int messageId = (Integer) payload.get("messageId");
-            String editedMessage = (String) payload.get("editedMessage");
+        String userIdStr = headerAccessor.getFirstNativeHeader("X-User-Id");
+        if (userIdStr != null) {
             try {
-                privateChatMessageService.editPrivateMessage(messageId, editedMessage);
-            } catch (Exception e) {
-                throw new RuntimeException("Failed to edit message: " + e.getMessage());
-            }
+                int currentUserId = Integer.parseInt(userIdStr);
+                int messageId = (Integer) payload.get("messageId");
+                int senderId = privateChatMessageService.getPrivateChatMessage(messageId).getSenderId();
+                String editedMessage = (String) payload.get("editedMessage");
+                if (senderId == currentUserId) {
+                    try {
+                        privateChatMessageService.editPrivateMessage(messageId, editedMessage);
+                    } catch (Exception e) {
+                        throw new RuntimeException("Failed to edit message: " + e.getMessage());
+                    }
+
+                }
+            } catch (Exception e) {}
+
         }
     }
 }
+
+
+
 //    @PostMapping("/{privateChatId}")
 //    public ResponseEntity<PrivateChatMessageDTO> sendMessage(
 //            @RequestHeader("Authorization") String token,
