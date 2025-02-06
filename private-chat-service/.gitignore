@@ -3,8 +3,7 @@ target/
 !.mvn/wrapper/maven-wrapper.jar
 !**/src/main/**/target/
 !**/src/test/**/target/
-
-todo.txt
+.env
 ### STS ###
 .apt_generated
 .classpath
@@ -13,7 +12,6 @@ todo.txt
 .settings
 .springBeans
 .sts4-cache
-.env
 
 ### IntelliJ IDEA ###
 .idea

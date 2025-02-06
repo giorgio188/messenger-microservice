@@ -1,13 +1,12 @@
-package com.messenger.user_service.dto;
+package com.messenger.private_chat_service.dto;
+
 
 import lombok.Data;
 
 @Data
-public class UserProfilePageDTO {
+public class UserProfileDTO {
     private int id;
     private String username;
     private String nickname;
-    private String phoneNumber;
-    private String email;
     private String avatar;
 }

@@ -7,9 +7,10 @@ import com.messenger.user_service.models.UserProfile;
 import com.messenger.user_service.models.enums.ProfileStatus;
 import com.messenger.user_service.repositories.UserProfileRepository;
 import com.messenger.user_service.services.UserProfileService;
-import com.messenger.user_service.utils.JWTUtil;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.messaging.handler.annotation.MessageMapping;
@@ -27,7 +28,6 @@ import java.util.List;
 public class UserProfileController {
 
     private final UserProfileService userProfileService;
-    private final JWTUtil jwtUtil;
     private final ModelMapper modelMapper;
     private final UserProfileRepository userProfileRepository;
 
@@ -39,32 +39,28 @@ public class UserProfileController {
     }
 
     @GetMapping("/profile")
-    public ResponseEntity<UserProfile> getCurrentUserProfile(@RequestHeader("Authorization") String token) {
-        int userId = jwtUtil.extractUserId(token.replace("Bearer ", ""));
+    public ResponseEntity<UserProfile> getCurrentUserProfile(@RequestHeader("X-User-Id") int userId) {
         UserProfile userProfile = userProfileService.getUserProfile(userId);
         return ResponseEntity.ok(userProfile);
     }
 
     @PatchMapping("/update")
     public ResponseEntity<UserProfile> updateUserProfile(@RequestBody UserProfileDTO userProfileDTO,
-                                                         @RequestHeader("Authorization") String token) {
-        int userId = jwtUtil.extractUserId(token.replace("Bearer ", ""));
+                                                         @RequestHeader("X-User-Id") int userId) {
         UserProfile updatedUserProfile = modelMapper.map(userProfileDTO, UserProfile.class);
         userProfileService.updateUserProfile(userId, updatedUserProfile);
         return ResponseEntity.ok(updatedUserProfile);
     }
 
     @PostMapping("/updatePassword")
-    public void updateUserProfilePassword(@RequestHeader("Authorization") String token,
+    public void updateUserProfilePassword(@RequestHeader("X-User-Id") int userId,
                                           @RequestParam String newPassword) {
-        int userId = jwtUtil.extractUserId(token.replace("Bearer ", ""));
         userProfileService.changePassword(userId, newPassword);
     }
 
     @DeleteMapping("/delete")
     @ResponseStatus(HttpStatus.FOUND)
-    public ResponseEntity<HttpStatus> deleteUserProfile(@RequestHeader("Authorization") String token) {
-        int userId = jwtUtil.extractUserId(token.replace("Bearer ", ""));
+    public ResponseEntity<HttpStatus> deleteUserProfile(@RequestHeader("X-User-Id") int userId) {
         userProfileService.deleteUserProfile(userId);
         return ResponseEntity.ok(HttpStatus.OK);
     }
@@ -75,14 +71,13 @@ public class UserProfileController {
     }
 
     @PostMapping("/avatar")
-    public ResponseEntity<?> addUserAvatar(@RequestHeader("Authorization") String token,
+    public ResponseEntity<?> addUserAvatar(@RequestHeader("X-User-Id") int userId,
                                                      @RequestParam MultipartFile file) {
         try {
             String getExtension = file.getContentType();
             if (getExtension == null || !getExtension.startsWith("image/")) {
                 return ResponseEntity.badRequest().body("You can upload only image as avatar");
             }
-            int userId = jwtUtil.extractUserId(token.replace("Bearer ", ""));
             String avatarURL = userProfileService.uploadAvatar(userId, file);
             return ResponseEntity.ok(avatarURL);
         } catch (Exception e) {
@@ -92,15 +87,13 @@ public class UserProfileController {
     }
 
     @DeleteMapping("/avatar")
-    public ResponseEntity<?> deleteUserAvatar(@RequestHeader("Authorization") String token) {
-        int userId = jwtUtil.extractUserId(token.replace("Bearer ", ""));
+    public ResponseEntity<?> deleteUserAvatar(@RequestHeader("X-User-Id") int userId) {
         userProfileService.deleteAvatar(userId);
         return ResponseEntity.ok().build();
     }
 
     @GetMapping("/avatar")
-    public ResponseEntity<String> getUserAvatar(@RequestHeader("Authorization") String token) {
-        int userId = jwtUtil.extractUserId(token.replace("Bearer ", ""));
+    public ResponseEntity<String> getUserAvatar(@RequestHeader("X-User-Id") int userId) {
         String avatarFileName = userProfileRepository.findById(userId).get().getAvatar();
         String avatarLink = userProfileService.getAvatarLink(avatarFileName);
         return ResponseEntity.ok(avatarLink);
@@ -115,21 +108,38 @@ public class UserProfileController {
 
     @MessageMapping("/user.connect")
     public void handleUserConnect(SimpMessageHeaderAccessor headerAccessor) {
-        String token = headerAccessor.getFirstNativeHeader("Authorization");
-        if (token != null && token.startsWith("Bearer ")) {
-            int userId = jwtUtil.extractUserId(token.replace("Bearer ", ""));
-            userProfileService.setUserOnlineStatus(userId, ProfileStatus.ONLINE);
+        String userIdStr = headerAccessor.getFirstNativeHeader("X-User-Id");
+        if (userIdStr != null) {
+            try {
+                int userId = Integer.parseInt(userIdStr);
+                userProfileService.setUserOnlineStatus(userId, ProfileStatus.ONLINE);
+            } catch (NumberFormatException e) {
+                Logger logger = LoggerFactory.getLogger(this.getClass());
+                logger.error("Failed to parse X-User-Id '{}' as an integer", userIdStr, e);
+            }
         }
     }
 
     @MessageMapping("/user.disconnect")
     public void handleUserDisconnect(SimpMessageHeaderAccessor headerAccessor) {
-        String token = headerAccessor.getFirstNativeHeader("Authorization");
-        if (token != null && token.startsWith("Bearer ")) {
-            int userId = jwtUtil.extractUserId(token.replace("Bearer ", ""));
-            userProfileService.setUserOnlineStatus(userId, ProfileStatus.OFFLINE);
+        String userIdStr = headerAccessor.getFirstNativeHeader("X-User-Id");
+        if (userIdStr != null) {
+            try {
+                int userId = Integer.parseInt(userIdStr);
+                userProfileService.setUserOnlineStatus(userId, ProfileStatus.OFFLINE);
+            } catch (NumberFormatException e) {
+                Logger logger = LoggerFactory.getLogger(this.getClass());
+                logger.error("Failed to parse X-User-Id '{}' as an integer", userIdStr, e);
+            }
         }
     }
+
+    @GetMapping("/exists/{userId}")
+    public ResponseEntity<Boolean> checkUserExists(@PathVariable int userId) {
+        boolean exists = userProfileService.existsById(userId);
+        return ResponseEntity.ok(exists);
+    }
+
 
 }
 //    @GetMapping("/avatar")

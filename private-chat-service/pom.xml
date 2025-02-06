@@ -8,9 +8,9 @@
 		<version>1.0.0</version>
 		<relativePath>../../microservices-parent/pom.xml</relativePath>
 	</parent>
-	<artifactId>user-service</artifactId>
+	<artifactId>private-chat-service</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
-	<url/>
+	<name>private-chat-service</name>
 	<licenses>
 		<license/>
 	</licenses>
@@ -28,14 +28,19 @@
 	</properties>
 	<dependencies>
 		<dependency>
+			<groupId>org.springframework.security</groupId>
+			<artifactId>spring-security-crypto</artifactId>
+			<version>6.4.2</version>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-webflux</artifactId>
+			<version>3.4.0</version>
+		</dependency>
+		<dependency>
 			<groupId>com.amazonaws</groupId>
 			<artifactId>aws-java-sdk-s3</artifactId>
 			<version>1.12.765</version>
-		</dependency>
-		<dependency>
-			<groupId>org.modelmapper</groupId>
-			<artifactId>modelmapper</artifactId>
-			<version>3.2.1</version>
 		</dependency>
 	</dependencies>
 
@@ -44,13 +49,6 @@
 			<plugin>
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-maven-plugin</artifactId>
-				<executions>
-					<execution>
-						<goals>
-							<goal>repackage</goal> <!-- Добавьте эту цель -->
-						</goals>
-					</execution>
-				</executions>
 			</plugin>
 		</plugins>
 	</build>

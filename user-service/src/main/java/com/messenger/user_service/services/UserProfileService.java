@@ -1,5 +1,6 @@
 package com.messenger.user_service.services;
 
+import com.messenger.user_service.dto.FriendDTO;
 import com.messenger.user_service.models.UserProfile;
 import com.messenger.user_service.models.enums.ProfileStatus;
 import com.messenger.user_service.repositories.UserProfileRepository;
@@ -50,7 +51,7 @@ public class UserProfileService {
         }
 
         UserProfile savedProfile = userProfileRepository.save(userProfile);
-        List<UserProfile> friendList = friendListService.getFriendList(id);
+        List<FriendDTO> friendList = friendListService.getFriendList(id);
         messagingTemplate.convertAndSend("/topic/user/" + id, savedProfile);
         friendList.forEach(friend ->
                 messagingTemplate.convertAndSend("/topic/user/" + friend.getId() + "/friend-update", savedProfile)
@@ -125,7 +126,7 @@ public class UserProfileService {
             );
 
             // Получаем список друзей пользователя и отправляем им уведомление
-            List<UserProfile> friendList = friendListService.getFriendList(id);
+            List<FriendDTO> friendList = friendListService.getFriendList(id);
             friendList.forEach(friend ->
                     messagingTemplate.convertAndSendToUser(
                             String.valueOf(friend.getId()),
@@ -159,6 +160,10 @@ public class UserProfileService {
             userProfile.get().setPassword(passwordEncoder.encode(newPassword));
             userProfileRepository.save(userProfile.get());
         }
+    }
+
+    public boolean existsById(int id) {
+        return userProfileRepository.existsById(id);
     }
 
 }

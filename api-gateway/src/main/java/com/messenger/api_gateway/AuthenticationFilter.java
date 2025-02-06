@@ -12,18 +12,8 @@ import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 import org.springframework.web.reactive.function.client.WebClient;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.cloud.gateway.filter.GatewayFilter;
-import org.springframework.cloud.gateway.filter.factory.AbstractGatewayFilterFactory;
 import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.server.reactive.ServerHttpRequest;
-import org.springframework.http.server.reactive.ServerHttpResponse;
-import org.springframework.stereotype.Component;
-import org.springframework.web.server.ServerWebExchange;
-import reactor.core.publisher.Mono;
-import org.springframework.web.reactive.function.client.WebClient;
+
 
 @Component
 public class AuthenticationFilter extends AbstractGatewayFilterFactory<AuthenticationFilter.Config> {
@@ -45,23 +35,22 @@ public class AuthenticationFilter extends AbstractGatewayFilterFactory<Authentic
             if (token == null || !token.startsWith("Bearer ")) {
                 return onError(exchange, "No Authorization header", HttpStatus.UNAUTHORIZED);
             }
-
             return webClientBuilder.build()
                     .post()
                     .uri("http://auth-service:8081/api/auth/verify")
                     .header(HttpHeaders.AUTHORIZATION, token)
                     .retrieve()
-                    .toBodilessEntity()
-                    .flatMap(response -> {
+                    .bodyToMono(Integer.class)
+                    .flatMap(userId -> {
                         ServerHttpRequest modifiedRequest = request.mutate()
                                 .header(HttpHeaders.AUTHORIZATION, token)
+                                .header("X-User-Id", String.valueOf(userId))
                                 .build();
-
                         ServerWebExchange modifiedExchange = exchange.mutate()
                                 .request(modifiedRequest)
                                 .build();
 
-                        logger.debug("Token verified, forwarding request with Authorization header");
+                        logger.debug("Token verified, forwarding request with Authorization and X-User-Id headers");
                         return chain.filter(modifiedExchange);
                     })
                     .onErrorResume(error -> {

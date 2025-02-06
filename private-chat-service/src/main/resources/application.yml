@@ -1,28 +1,25 @@
 server:
-  port: 8081
-
+  port: 8083
+api:
+  gateway:
+    url: ${GATEWAY_URL}
 spring:
   application:
-    name: auth-service
+    name: private-chat-service
   cloud:
     kubernetes:
       discovery:
         enabled: true
   datasource:
-    url: ${DB_USER_URL}
-    username: ${DB_USER_USERNAME}
-    password: ${DB_USER_PASSWORD}
+    url: ${DB_PRIVATE_CHAT_URL}
+    username: ${DB_PRIVATE_CHAT_USERNAME}
+    password: ${DB_PRIVATE_CHAT_PASSWORD}
     driver-class-name: org.postgresql.Driver
 
   jpa:
     show-sql: true
     hibernate:
       ddl-auto: update
-
-  # Security
-  jwt:
-    secret: ${JWT_SECRET}
-
 
   #logs for terminal
   logging:
