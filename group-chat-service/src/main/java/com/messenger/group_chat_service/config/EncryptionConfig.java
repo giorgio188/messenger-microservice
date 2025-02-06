@@ -1,4 +1,4 @@
-package com.messenger.private_chat_service.config;
+package com.messenger.group_chat_service.config;
 
 
 import org.springframework.beans.factory.annotation.Value;
