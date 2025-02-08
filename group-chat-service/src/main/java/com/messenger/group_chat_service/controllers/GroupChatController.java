@@ -1,13 +1,12 @@
 package com.messenger.group_chat_service.controllers;
 
-import com.project.messenger.dto.GroupChatCreatingDTO;
-import com.project.messenger.dto.GroupChatDTO;
-import com.project.messenger.models.GroupChat;
-import com.project.messenger.models.GroupChatMembers;
-import com.project.messenger.models.enums.Roles;
-import com.project.messenger.security.JWTUtil;
-import com.project.messenger.services.GroupChatMessageService;
-import com.project.messenger.services.GroupChatService;
+import com.messenger.group_chat_service.dto.GroupChatCreatingDTO;
+import com.messenger.group_chat_service.dto.GroupChatDTO;
+import com.messenger.group_chat_service.models.GroupChat;
+import com.messenger.group_chat_service.models.GroupChatMembers;
+import com.messenger.group_chat_service.models.enums.Roles;
+import com.messenger.group_chat_service.services.GroupChatMessageService;
+import com.messenger.group_chat_service.services.GroupChatService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -28,86 +27,83 @@ public class GroupChatController {
 
 
     private final GroupChatService groupChatService;
-    private final JWTUtil jwtUtil;
     private final GroupChatMessageService groupChatMessageService;
 
     @GetMapping("/{groupChatId}")
     public ResponseEntity<GroupChatDTO> getGroupChat(
-            @RequestHeader("Authorization") String token,
+            @RequestHeader("X-User-Id") int userId,
             @PathVariable int groupChatId){
-        int memberId = jwtUtil.extractUserId(token.replace("Bearer ", ""));
-        GroupChatDTO groupChat = groupChatService.getGroupChat(groupChatId, memberId);
+        GroupChatDTO groupChat = groupChatService.getGroupChat(groupChatId, userId);
         return  ResponseEntity.ok(groupChat);
     }
 
     @GetMapping()
     public ResponseEntity<List<GroupChatDTO>> getGroupChatsByMember(
-            @RequestHeader("Authorization") String token) {
-        int memberId = jwtUtil.extractUserId(token.replace("Bearer ", ""));
-        List<GroupChatDTO> groupChats = groupChatService.getAllGroupChatsByUser(memberId);
+            @RequestHeader("X-User-Id") int userId) {
+        List<GroupChatDTO> groupChats = groupChatService.getAllGroupChatsByUser(userId);
         return  ResponseEntity.ok(groupChats);
     }
 
     @PostMapping("/create")
     public ResponseEntity<?> createGroupChat(
-            @RequestHeader("Authorization") String token,
+            @RequestHeader("X-User-Id") int userId,
             @RequestBody GroupChatCreatingDTO groupChatDTO) {
-        int creatorId = jwtUtil.extractUserId(token.replace("Bearer ", ""));
-        groupChatService.createGroupChat(
+                groupChatService.createGroupChat(
                 groupChatDTO.getName(),
                 groupChatDTO.getDescription(),
-                creatorId);
+                userId);
         return ResponseEntity.ok().build();
     }
 
     @DeleteMapping("/{groupChatId}")
-    public ResponseEntity<HttpStatus> deleteGroupChat(@RequestHeader("Authorization") String token,
+    public ResponseEntity<HttpStatus> deleteGroupChat(@RequestHeader("X-User-Id") int userId,
                                   @PathVariable int groupChatId) {
-        groupChatService.deleteGroupChat(groupChatId, jwtUtil.extractUserId(token.replace("Bearer ", "")));
+        groupChatService.deleteGroupChat(groupChatId, userId);
         return ResponseEntity.ok(HttpStatus.OK);
     }
 
     @PatchMapping("/{groupChatId}/edit-description")
     public ResponseEntity<GroupChat> editGroupChatDescription(
-            @RequestHeader("Authorization") String token,
+            @RequestHeader("X-User-Id") int userId,
             @PathVariable int groupChatId,
             @RequestParam String newDesc) {
-        groupChatService.editDescription(groupChatId, newDesc, jwtUtil.extractUserId(token.replace("Bearer ", "")));
+        groupChatService.editDescription(groupChatId, newDesc, userId);
         return ResponseEntity.ok().build();
     }
 
     @PatchMapping("/{groupChatId}/edit-name")
     public ResponseEntity<GroupChat> editGroupChatName(
-            @RequestHeader("Authorization") String token,
+            @RequestHeader("X-User-Id") int userId,
             @PathVariable int groupChatId,
             @RequestParam String newName) {
-        groupChatService.editName(groupChatId, newName, jwtUtil.extractUserId(token.replace("Bearer ", "")));
+        groupChatService.editName(groupChatId, newName, userId);
         return ResponseEntity.ok().build();
     }
 
     @DeleteMapping("/{groupChatId}/delete-user")
     public ResponseEntity<GroupChat> deleteUser(
-            @RequestHeader("Authorization") String token,
+            @RequestHeader("X-User-Id") int userId,
             @PathVariable int groupChatId,
-            @RequestParam int userId) {
-        groupChatService.deleteUser(groupChatId, userId, jwtUtil.extractUserId(token.replace("Bearer ", "")));
+            @RequestParam int userToDeleteId) {
+        groupChatService.deleteUser(groupChatId, userToDeleteId, userId);
         return ResponseEntity.ok().build();
     }
 
     @PatchMapping("/{groupChatId}/add-user")
     public ResponseEntity<GroupChat> addUser(
+            @RequestHeader("X-User-Id") int currentUserId,
             @PathVariable int groupChatId,
-            @RequestParam int userId) {
-        groupChatService.addUser(groupChatId, userId, Roles.MEMBER);
+            @RequestParam int userToAddId) {
+        groupChatService.addUser(groupChatId, currentUserId, userToAddId, Roles.MEMBER);
         return ResponseEntity.ok().build();
     }
 
     @PatchMapping("/{groupChatId}/change-role/{memberId}")
-    public ResponseEntity<?> changeRole(@RequestHeader("Authorization") String token,
+    public ResponseEntity<?> changeRole(@RequestHeader("X-User-Id") int userId,
                                                        @PathVariable int groupChatId,
                                                        @PathVariable int memberId,
                                                        @RequestParam Roles role) {
-        groupChatService.setRoleToMember(groupChatId, memberId, role, jwtUtil.extractUserId(token.replace("Bearer ", "")));
+        groupChatService.setRoleToMember(groupChatId, memberId, role, userId);
         return ResponseEntity.ok().build();
     }
 
@@ -119,9 +115,8 @@ public class GroupChatController {
 
     @DeleteMapping("/{groupChatId}/leave")
     public ResponseEntity<GroupChat> leaveGroupChatByUser(
-            @RequestHeader("Authorization") String token,
+            @RequestHeader("X-User-Id") int userId,
             @PathVariable int groupChatId) {
-        int userId = jwtUtil.extractUserId(token.replace("Bearer ", ""));
         groupChatService.leaveGroupChat(groupChatId, userId);
         return ResponseEntity.ok().build();
     }
@@ -132,11 +127,10 @@ public class GroupChatController {
     }
 
     @PatchMapping("/{groupChatId}/avatar")
-    public ResponseEntity<?> uploadGroupChatAvatar(@RequestHeader("Authorization") String token,
+    public ResponseEntity<?> uploadGroupChatAvatar(@RequestHeader("X-User-Id") int userId,
                                                    @PathVariable int groupChatId,
                                                    @RequestParam MultipartFile file) {
         try {
-            int userId = jwtUtil.extractUserId(token.replace("Bearer ", ""));
             groupChatService.setAvatar(userId, groupChatId, file);
         } catch (Exception e) {
             e.printStackTrace();
@@ -145,17 +139,17 @@ public class GroupChatController {
     }
 
     @DeleteMapping("/{groupChatId}/avatar")
-    public void deleteGroupChatAvatar(@RequestHeader("Authorization") String token,
+    public void deleteGroupChatAvatar(@RequestHeader("X-User-Id") int userId,
                                                    @PathVariable int groupChatId) {
-        groupChatService.deleteAvatar(groupChatId, jwtUtil.extractUserId(token.replace("Bearer ", "")));
+        groupChatService.deleteAvatar(groupChatId, userId);
     }
 
     @MessageMapping("/group.enter")
     public void handleChatEnter(@Payload Map<String, Object> payload,
                                 SimpMessageHeaderAccessor headerAccessor) {
-        String token = headerAccessor.getFirstNativeHeader("Authorization");
-        if (token != null && token.startsWith("Bearer ")) {
-            int userId = jwtUtil.extractUserId(token.replace("Bearer ", ""));
+        String userIdStr = headerAccessor.getFirstNativeHeader("X-User-Id");
+        if (userIdStr != null) {
+            int userId = Integer.parseInt(userIdStr);
             int groupChatId = (Integer) payload.get("groupChatId");
 
             try {

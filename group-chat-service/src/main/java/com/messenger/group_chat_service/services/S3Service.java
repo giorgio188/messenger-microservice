@@ -3,7 +3,7 @@ package com.messenger.group_chat_service.services;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.amazonaws.services.s3.model.PutObjectRequest;
-import com.project.messenger.models.enums.FileType;
+import com.messenger.group_chat_service.models.enums.FileType;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;

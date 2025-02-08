@@ -1,13 +1,13 @@
 package com.messenger.group_chat_service.services;
 
-import com.project.messenger.dto.GroupChatMessageDTO;
-import com.project.messenger.models.GroupChat;
-import com.project.messenger.models.GroupChatMessage;
-import com.project.messenger.models.UserProfile;
-import com.project.messenger.models.enums.MessageStatus;
-import com.project.messenger.repositories.GroupChatMessageRepository;
-import com.project.messenger.repositories.GroupChatRepository;
-import com.project.messenger.utils.MapperForDTO;
+
+import com.messenger.group_chat_service.dto.GroupChatMessageDTO;
+import com.messenger.group_chat_service.models.GroupChat;
+import com.messenger.group_chat_service.models.GroupChatMessage;
+import com.messenger.group_chat_service.models.enums.MessageStatus;
+import com.messenger.group_chat_service.repositories.GroupChatMessageRepository;
+import com.messenger.group_chat_service.repositories.GroupChatRepository;
+import com.messenger.group_chat_service.utils.MapperForDTO;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -25,7 +25,6 @@ import java.util.*;
 @Slf4j
 public class GroupChatMessageService {
 
-    private final UserProfileService userProfileService;
     private final GroupChatService groupChatService;
     private final EncryptionService encryptionService;
     private final GroupChatMessageRepository groupchatMessageRepository;
@@ -37,24 +36,19 @@ public class GroupChatMessageService {
 
     @Transactional
     public GroupChatMessageDTO sendMessage(int senderId, int groupChatId, String message) {
-        UserProfile sender = userProfileService.getUserProfile(senderId);
         GroupChat groupChat = modelMapper.map(groupChatService.getGroupChat(groupChatId, senderId), GroupChat.class);
-
         String encryptedMessage = encryptionService.encrypt(message);
-
         GroupChatMessage groupChatMessage = new GroupChatMessage(
                 groupChat,
-                sender,
-                LocalDateTime.now(),
+                senderId,
                 encryptedMessage,
                 MessageStatus.SENT
         );
 
         GroupChatMessage savedMessage = groupchatMessageRepository.save(groupChatMessage);
         GroupChatMessageDTO messageDTO = mapperForDTO.convertGroupChatMessageToDTO(savedMessage);
-        messageDTO.setMessage(message); // Используем расшифрованное сообщение для отправки
+        messageDTO.setMessage(message);
 
-        // Изменен путь с group-chat на group-message
         messagingTemplate.convertAndSend(
                 "/topic/group-message." + groupChatId,
                 messageDTO
@@ -126,7 +120,7 @@ public class GroupChatMessageService {
             editNotification.put("status", MessageStatus.EDITED);
             editNotification.put("chatId", chatId);
             editNotification.put("timestamp", LocalDateTime.now());
-            editNotification.put("senderId", message.getSender().getId());
+            editNotification.put("senderId", message.getSenderId());
             // Отправляем уведомление всем участникам группового чата
             messagingTemplate.convertAndSend(
                     "/topic/group-message." + chatId,

@@ -1,9 +1,9 @@
 package com.messenger.group_chat_service.controllers;
 
-import com.project.messenger.dto.GroupChatMessageDTO;
-import com.project.messenger.security.JWTUtil;
-import com.project.messenger.services.GroupChatMessageService;
-import com.project.messenger.services.GroupChatService;
+
+import com.messenger.group_chat_service.dto.GroupChatMessageDTO;
+import com.messenger.group_chat_service.services.GroupChatMessageService;
+import com.messenger.group_chat_service.services.GroupChatService;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.http.ResponseEntity;
@@ -23,7 +23,6 @@ public class GroupChatMessageController {
 
     private final GroupChatMessageService groupChatMessageService;
     private final GroupChatService groupChatService;
-    private final JWTUtil jwtUtil;
     private final ModelMapper modelMapper;
 
     @GetMapping("/{groupChatId}")
@@ -33,15 +32,14 @@ public class GroupChatMessageController {
         return ResponseEntity.ok(messages);
     }
 
-    @MessageMapping("/group.send")
+    @MessageMapping("/groupMessage.send")
     public void handleGroupMessage(@Payload Map<String, Object> payload,
                                    SimpMessageHeaderAccessor headerAccessor) {
-        String token = headerAccessor.getFirstNativeHeader("Authorization");
-        if (token != null && token.startsWith("Bearer ")) {
-            int senderId = jwtUtil.extractUserId(token.replace("Bearer ", ""));
+        String senderIdStr = headerAccessor.getFirstNativeHeader("X-User-Id");
+        if (senderIdStr != null) {
+            int senderId = Integer.parseInt(senderIdStr);
             int chatId = (Integer) payload.get("chatId");
             String message = (String) payload.get("message");
-
             try {
                 groupChatMessageService.sendMessage(senderId, chatId, message);
             } catch (Exception e) {
@@ -50,11 +48,11 @@ public class GroupChatMessageController {
         }
     }
 
-    @MessageMapping("/group.delete")
+    @MessageMapping("/groupMessage.delete")
     public void handleDeleteMessage(@Payload Map<String, Object> payload,
                                     SimpMessageHeaderAccessor headerAccessor) {
-        String token = headerAccessor.getFirstNativeHeader("Authorization");
-        if (token != null && token.startsWith("Bearer ")) {
+        String userIdStr = headerAccessor.getFirstNativeHeader("X-User-Id");
+        if (userIdStr != null) {
             int messageId = (Integer) payload.get("messageId");
             try {
                 groupChatMessageService.deleteGroupMessage(messageId);
@@ -64,11 +62,11 @@ public class GroupChatMessageController {
         }
     }
 
-    @MessageMapping("/group.edit")
+    @MessageMapping("/groupMessage.edit")
     public void handleEditMessage(@Payload Map<String, Object> payload,
                                   SimpMessageHeaderAccessor headerAccessor) {
-        String token = headerAccessor.getFirstNativeHeader("Authorization");
-        if (token != null && token.startsWith("Bearer ")) {
+        String userIdStr = headerAccessor.getFirstNativeHeader("X-User-Id");
+        if (userIdStr != null) {
             int messageId = (Integer) payload.get("messageId");
             String editedMessage = (String) payload.get("editedMessage");
             try {
@@ -79,6 +77,7 @@ public class GroupChatMessageController {
         }
     }
 
+    //TODO сделать проверку на отправителя сообщения
 
 
 }

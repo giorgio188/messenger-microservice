@@ -20,13 +20,15 @@ public class MapperForDTO {
         dto.setId(privateChatMessage.getId());
         dto.setPrivateChatId(privateChatMessage.getPrivateChat().getId());
 
-        dto.setSenderId(privateChatMessage.getSenderId());
-        dto.setSenderUsername(userInfoUtil.getUserProfile(privateChatMessage.getSenderId()).getUsername());
-        dto.setSenderNickname(userInfoUtil.getUserProfile(privateChatMessage.getSenderId()).getNickname());
+        int senderId = privateChatMessage.getSenderId();
+        dto.setSenderId(senderId);
+        dto.setSenderUsername(userInfoUtil.getUserProfile(senderId).getUsername());
+        dto.setSenderNickname(userInfoUtil.getUserProfile(senderId).getNickname());
 
-        dto.setReceiverId(privateChatMessage.getReceiverId());
-        dto.setReceiverUsername(userInfoUtil.getUserProfile(privateChatMessage.getReceiverId()).getUsername());
-        dto.setReceiverNickname(userInfoUtil.getUserProfile(privateChatMessage.getReceiverId()).getNickname());
+        int receiverId = privateChatMessage.getReceiverId();
+        dto.setReceiverId(receiverId);
+        dto.setReceiverUsername(userInfoUtil.getUserProfile(receiverId).getUsername());
+        dto.setReceiverNickname(userInfoUtil.getUserProfile(receiverId).getNickname());
 
         dto.setMessage(privateChatMessage.getMessage());
         dto.setSendTime(privateChatMessage.getSentAt());
@@ -37,13 +39,15 @@ public class MapperForDTO {
         PrivateChatDTO dto = new PrivateChatDTO();
         dto.setId(chat.getId());
 
-        dto.setSenderId(chat.getSenderId());
-        dto.setSenderUsername(userInfoUtil.getUserProfile(chat.getSenderId()).getUsername());
-        dto.setSenderNickname(userInfoUtil.getUserProfile(chat.getSenderId()).getNickname());
+        int senderId = chat.getSenderId();
+        dto.setSenderId(senderId);
+        dto.setSenderUsername(userInfoUtil.getUserProfile(senderId).getUsername());
+        dto.setSenderNickname(userInfoUtil.getUserProfile(senderId).getNickname());
 
-        dto.setReceiverId(chat.getReceiverId());
-        dto.setReceiverUsername(userInfoUtil.getUserProfile(chat.getReceiverId()).getUsername());
-        dto.setReceiverNickname(userInfoUtil.getUserProfile(chat.getReceiverId()).getNickname());
+        int receiverId = chat.getReceiverId();
+        dto.setReceiverId(receiverId);
+        dto.setReceiverUsername(userInfoUtil.getUserProfile(receiverId).getUsername());
+        dto.setReceiverNickname(userInfoUtil.getUserProfile(receiverId).getNickname());
 
         dto.setCreatedAt(chat.getCreatedAt());
         return dto;

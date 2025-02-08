@@ -4,7 +4,7 @@ import com.fasterxml.jackson.annotation.JsonIdentityInfo;
 import com.fasterxml.jackson.annotation.JsonIdentityReference;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.ObjectIdGenerators;
-import com.project.messenger.models.enums.Roles;
+import com.messenger.group_chat_service.models.enums.Roles;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
@@ -30,16 +30,17 @@ public class GroupChatMembers {
     @JsonIdentityReference(alwaysAsId = true)
     private GroupChat groupChat;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "member_id", referencedColumnName = "id")
-    @JsonProperty("memberId")
-    @JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "id")
-    @JsonIdentityReference(alwaysAsId = true)
-    private UserProfile member;
+    @JoinColumn(name = "member_id")
+    private int memberId;
 
     @NotNull
     @Column(name = "role")
     @Enumerated(EnumType.STRING)
     private Roles role;
 
+    public GroupChatMembers(GroupChat groupChat, int memberId, Roles role) {
+        this.groupChat = groupChat;
+        this.memberId = memberId;
+        this.role = role;
+    }
 }

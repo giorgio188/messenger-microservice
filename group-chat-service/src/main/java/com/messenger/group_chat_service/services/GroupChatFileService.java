@@ -1,11 +1,11 @@
 package com.messenger.group_chat_service.services;
 
-import com.project.messenger.models.GroupChat;
-import com.project.messenger.models.GroupChatFiles;
-import com.project.messenger.models.UserProfile;
-import com.project.messenger.models.enums.FileType;
-import com.project.messenger.repositories.GroupChatFileRepository;
-import com.project.messenger.repositories.GroupChatRepository;
+
+import com.messenger.group_chat_service.models.GroupChat;
+import com.messenger.group_chat_service.models.GroupChatFiles;
+import com.messenger.group_chat_service.models.enums.FileType;
+import com.messenger.group_chat_service.repositories.GroupChatFileRepository;
+import com.messenger.group_chat_service.repositories.GroupChatRepository;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -27,7 +27,6 @@ import java.util.Map;
 @Slf4j
 public class GroupChatFileService {
 
-    private final UserProfileService userProfileService;
     private final GroupChatService groupChatService;
     private final GroupChatRepository groupChatRepository;
     private final S3Service s3Service;
@@ -39,15 +38,13 @@ public class GroupChatFileService {
     @Transactional
     public GroupChatFiles sendFile(int senderId, int groupChatId, MultipartFile file)
             throws IOException {
-        UserProfile sender = userProfileService.getUserProfile(senderId);
         GroupChat groupChat = modelMapper.map(groupChatService.getGroupChat(groupChatId, senderId), GroupChat.class);
         String filePath = s3Service.uploadFile(file, FILE_DIRECTORY);
         FileType fileType = FileType.getByContentType(file.getContentType())
                 .orElseThrow(() -> new RuntimeException("Неподдерживаемый формат файла: " + file.getContentType()));
         String fileName = file.getOriginalFilename();
         int size = (int) file.getSize();
-        GroupChatFiles newFile = new GroupChatFiles(
-                groupChat, sender, LocalDateTime.now(),
+        GroupChatFiles newFile = new GroupChatFiles(groupChat, senderId,
                 fileName, filePath, fileType, size);
         GroupChatFiles savedFile = groupChatFileRepository.save(newFile);
 

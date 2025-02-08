@@ -4,7 +4,7 @@ import lombok.Data;
 
 @Data
 public class GroupChatMembersDTO {
-    private String memberId;
+    private int memberId;
     private String username;
     private String nickname;
     private String role;

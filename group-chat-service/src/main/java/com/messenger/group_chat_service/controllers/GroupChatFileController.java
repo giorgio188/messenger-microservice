@@ -1,10 +1,10 @@
 package com.messenger.group_chat_service.controllers;
 
-import com.project.messenger.models.GroupChat;
-import com.project.messenger.models.GroupChatFiles;
-import com.project.messenger.security.JWTUtil;
-import com.project.messenger.services.GroupChatFileService;
-import com.project.messenger.services.GroupChatService;
+
+import com.messenger.group_chat_service.models.GroupChat;
+import com.messenger.group_chat_service.models.GroupChatFiles;
+import com.messenger.group_chat_service.services.GroupChatFileService;
+import com.messenger.group_chat_service.services.GroupChatService;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.http.ResponseEntity;
@@ -22,7 +22,6 @@ import java.util.List;
 public class GroupChatFileController {
 
     private final GroupChatService groupChatService;
-    private final JWTUtil jwtUtil;
     private final GroupChatFileService groupChatFileService;
     private final ModelMapper modelMapper;
 
@@ -35,23 +34,23 @@ public class GroupChatFileController {
 
     @PostMapping("/{groupChatId}")
     public ResponseEntity<GroupChatFiles> sendFile(
-            @RequestHeader("Authorization") String token,
+            @RequestHeader("X-User-Id") int senderId,
             @PathVariable int groupChatId,
             @RequestParam MultipartFile file) throws IOException {
-        int memberId = jwtUtil.extractUserId(token.replace("Bearer ", ""));
-        GroupChat groupChat = modelMapper.map(groupChatService.getGroupChat(groupChatId, memberId), GroupChat.class);
+        GroupChat groupChat = modelMapper.map(groupChatService.getGroupChat(groupChatId, senderId), GroupChat.class);
         if (groupChat == null) {
             throw new AccessDeniedException("Access denied");
         }
-        GroupChatFiles groupChatFile = groupChatFileService.sendFile(memberId, groupChatId, file);
+        GroupChatFiles groupChatFile = groupChatFileService.sendFile(senderId, groupChatId, file);
         return ResponseEntity.ok(groupChatFile);
     }
     @DeleteMapping("/{fileId}")
-    public ResponseEntity<String> deleteMessage(
+    public ResponseEntity<String> deleteFile(
             @PathVariable int fileId) {
         groupChatFileService.deleteFile(fileId);
         return ResponseEntity.ok("File was deleted");
     }
+    //TODO сделать проверку на отправителя файла
 
 }
 

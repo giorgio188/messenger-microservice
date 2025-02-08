@@ -1,7 +1,7 @@
 package com.messenger.group_chat_service.models;
 
 import com.fasterxml.jackson.annotation.*;
-import com.project.messenger.models.enums.FileType;
+import com.messenger.group_chat_service.models.enums.FileType;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -27,12 +27,9 @@ public class GroupChatFiles {
     @JsonIdentityReference(alwaysAsId = true)
     private GroupChat groupChat;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "sender_id", referencedColumnName = "id")
-    @JsonProperty("senderId")
-    @JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "id")
-    @JsonIdentityReference(alwaysAsId = true)
-    private UserProfile sender;
+
+    @Column(name = "sender_id")
+    private int senderId;
 
     @Column(name = "sent_at")
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss")
@@ -51,12 +48,9 @@ public class GroupChatFiles {
     @Column(name = "size")
     private int size;
 
-    public GroupChatFiles(GroupChat groupChat, UserProfile sender,
-                          LocalDateTime sentAt, String fileName,
-                          String filePath, FileType type, int size) {
+    public GroupChatFiles(GroupChat groupChat, int senderId, String fileName, String filePath, FileType type, int size) {
         this.groupChat = groupChat;
-        this.sender = sender;
-        this.sentAt = sentAt;
+        this.senderId = senderId;
         this.fileName = fileName;
         this.filePath = filePath;
         this.type = type;
