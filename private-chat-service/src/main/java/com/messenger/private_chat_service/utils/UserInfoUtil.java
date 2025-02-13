@@ -28,7 +28,7 @@ public class UserInfoUtil {
         try {
             return webClientBuilder.build()
                     .get()
-                    .uri("/api/exists/" + userId)
+                    .uri("/api/user/exists/" + userId)
                     .retrieve()
                     .bodyToMono(Boolean.class)
                     .block();
