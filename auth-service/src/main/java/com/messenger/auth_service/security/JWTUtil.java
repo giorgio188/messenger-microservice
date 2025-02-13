@@ -5,6 +5,7 @@ import com.auth0.jwt.JWTVerifier;
 import com.auth0.jwt.algorithms.Algorithm;
 import com.auth0.jwt.exceptions.JWTVerificationException;
 import com.auth0.jwt.interfaces.DecodedJWT;
+import com.messenger.auth_service.dto.TokenInfo;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
@@ -56,6 +57,24 @@ public class JWTUtil {
                     .build();
             DecodedJWT jwt = verifier.verify(token);
             return jwt.getClaim("id").asInt();
+        } catch (JWTVerificationException e) {
+            throw new IllegalArgumentException("Invalid token", e);
+        }
+    }
+
+    public TokenInfo extractTokenInfo(String token) {
+        try {
+            JWTVerifier verifier = JWT.require(Algorithm.HMAC256(secret))
+                    .withSubject("User authentication")
+                    .withIssuer("admin")
+                    .build();
+            DecodedJWT jwt = verifier.verify(token);
+
+            TokenInfo tokenInfo = new TokenInfo();
+            tokenInfo.setUserId(jwt.getClaim("id").asInt());
+            tokenInfo.setExpirationTime(jwt.getExpiresAt().toInstant().getEpochSecond());
+
+            return tokenInfo;
         } catch (JWTVerificationException e) {
             throw new IllegalArgumentException("Invalid token", e);
         }

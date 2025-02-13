@@ -1,15 +1,15 @@
 package com.messenger.group_chat_service.models;
 
-import com.fasterxml.jackson.annotation.JsonIdentityInfo;
-import com.fasterxml.jackson.annotation.JsonIdentityReference;
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.annotation.ObjectIdGenerators;
+import com.fasterxml.jackson.annotation.*;
 import com.messenger.group_chat_service.models.enums.Roles;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
+import org.hibernate.annotations.CreationTimestamp;
+
+import java.time.LocalDateTime;
 
 @Entity
 @Getter
@@ -37,6 +37,11 @@ public class GroupChatMembers {
     @Column(name = "role")
     @Enumerated(EnumType.STRING)
     private Roles role;
+
+    @Column(name = "applied_at")
+    @CreationTimestamp
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss")
+    private LocalDateTime appliedAt;
 
     public GroupChatMembers(GroupChat groupChat, int memberId, Roles role) {
         this.groupChat = groupChat;

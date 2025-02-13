@@ -29,6 +29,7 @@
 		<jackson-datatype-jsr310.version>2.18.2</jackson-datatype-jsr310.version>
 		<java-jwt.version>4.4.0</java-jwt.version>
 		<spring-web.version>6.2.1</spring-web.version>
+		<spring-env.version>4.0.0</spring-env.version>
 	</properties>
 
 	<dependencyManagement>
@@ -112,6 +113,11 @@
 				<artifactId>spring-messaging</artifactId>
 				<version>${spring-web.version}</version>
 			</dependency>
+			<dependency>
+				<groupId>me.paulschwarz</groupId>
+				<artifactId>spring-dotenv</artifactId>
+				<version>${spring-env.version}</version>
+			</dependency>
 		</dependencies>
 	</dependencyManagement>
 
@@ -169,6 +175,10 @@
 		<dependency>
 			<groupId>org.springframework</groupId>
 			<artifactId>spring-messaging</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>me.paulschwarz</groupId>
+			<artifactId>spring-dotenv</artifactId>
 		</dependency>
 <!--		<dependency>-->
 <!--			<groupId>org.springframework.cloud</groupId>-->

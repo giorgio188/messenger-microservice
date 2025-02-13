@@ -1,20 +1,31 @@
 services:
 
+
+  redis:
+    image: redis:latest
+    container_name: redis_container
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - microservices-network
+
   auth_user_friends_db:
-      image: postgres:17
-      container_name: auth_user_friends_db
-      environment:
-        - POSTGRES_DB=${DB_USER_NAME}
-        - POSTGRES_USER=${DB_USER_USERNAME}
-        - POSTGRES_PASSWORD=${DB_USER_PASSWORD}
-        - POSTGRES_ADMIN_PASSWORD=${POSTGRES_PASSWORD}
-      ports:
-        - "5432:5432"
-      volumes:
-        - db_data:/var/lib/postgresql/data
-        - ./user-service.sql:/docker-entrypoint-initdb.d/init.sql
-      networks:
-        - microservices-network
+    image: postgres:17
+    container_name: auth_user_friends_db
+    environment:
+      - POSTGRES_DB=${DB_USER_NAME}
+      - POSTGRES_USER=${DB_USER_USERNAME}
+      - POSTGRES_PASSWORD=${DB_USER_PASSWORD}
+      - POSTGRES_ADMIN_PASSWORD=${POSTGRES_PASSWORD}
+    ports:
+      - "5432:5432"
+    volumes:
+      - db_data:/var/lib/postgresql/data
+      - ./user-service:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - microservices-network
 
   api-gateway:
     build:
@@ -28,6 +39,7 @@ services:
       - microservices-network
     depends_on:
       - auth_user_friends_db
+      - redis
 
   auth-service:
     build:
@@ -40,12 +52,12 @@ services:
       - DB_USER_URL=jdbc:postgresql://auth_user_friends_db:5432/${DB_USER_NAME}
       - DB_USER_USERNAME=${DB_USER_USERNAME}
       - DB_USER_PASSWORD=${DB_USER_PASSWORD}
-
       - JWT_SECRET=${JWT_SECRET}
     networks:
       - microservices-network
     depends_on:
       - auth_user_friends_db
+      - redis
 
   user-service:
     build:
@@ -67,6 +79,7 @@ services:
       - microservices-network
     depends_on:
       - auth_user_friends_db
+      - redis
 
 networks:
   microservices-network:
@@ -74,3 +87,4 @@ networks:
 
 volumes:
   db_data:
+  redis_data:

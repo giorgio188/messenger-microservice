@@ -30,6 +30,8 @@ public class GroupChatService {
     private final String AVATAR_DIRECTORY = "groupchat-avatar";
     private final S3Service s3Service;
 
+    //TODO сделать проверку на существование юзера
+
     @Transactional
     public void createGroupChat(String groupName, String description, int creatorId) {
         GroupChat groupChat = new GroupChat();
