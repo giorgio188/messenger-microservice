@@ -5,6 +5,7 @@ import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.hibernate.annotations.CreationTimestamp;
 
 import java.time.LocalDateTime;
 
@@ -29,6 +30,7 @@ public class FriendList {
     private UserProfile friendId;
 
     @NotNull
+    @CreationTimestamp
     @Column(name = "added_at")
     private LocalDateTime addedAt;
 

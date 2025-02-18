@@ -3,9 +3,11 @@ package com.messenger.auth_service.controllers;
 
 import com.messenger.auth_service.dto.AuthDTO;
 import com.messenger.auth_service.dto.RegistrationDTO;
+import com.messenger.auth_service.dto.TokenInfo;
 import com.messenger.auth_service.models.UserProfile;
 import com.messenger.auth_service.repositories.UserProfileRepository;
 import com.messenger.auth_service.security.JWTUtil;
+import com.messenger.auth_service.services.AuthService;
 import com.messenger.auth_service.services.RegistrationService;
 import com.messenger.auth_service.utils.UserProfileValidator;
 import lombok.RequiredArgsConstructor;
@@ -17,6 +19,7 @@ import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
+import reactor.core.publisher.Mono;
 
 import java.util.Map;
 import java.util.Optional;
@@ -28,6 +31,7 @@ import java.util.Optional;
 public class AuthController {
 
     private final RegistrationService registrationService;
+    private final AuthService authService;
     private final JWTUtil jwtUtil;
     private final AuthenticationManager authenticationManager;
     private final UserProfileValidator userProfileValidator;
@@ -71,10 +75,48 @@ public class AuthController {
         String jwtToken = token.startsWith("Bearer ") ? token.substring(7) : token;
 
         try {
-            int userId = jwtUtil.extractUserId(jwtToken);
-            return ResponseEntity.ok(userId);
+            TokenInfo tokenInfo = jwtUtil.extractTokenInfo(jwtToken);
+            return ResponseEntity.ok(tokenInfo);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid token");
+        }
+    }
+
+    @PostMapping("/logout")
+    public ResponseEntity<?> logout(@RequestHeader("Authorization") String token) {
+        if (token == null || token.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Token is missing");
+        }
+
+        String jwtToken = token.startsWith("Bearer ") ? token.substring(7) : token;
+
+        try {
+            jwtUtil.verifyToken(jwtToken);
+            try {
+                authService.logout(jwtToken);
+                return ResponseEntity.ok().build();
+            } catch (Exception e) {
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                        .body("Error during logout: " + e.getMessage());
+            }
         } catch (IllegalArgumentException e) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid token");
         }
     }
 }
+
+//@PostMapping("/verify")
+//public ResponseEntity<?> validateToken(@RequestHeader("Authorization") String token) {
+//    if (token == null || token.isEmpty()) {
+//        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Token is missing");
+//    }
+//
+//    String jwtToken = token.startsWith("Bearer ") ? token.substring(7) : token;
+//
+//    try {
+//        int userId = jwtUtil.extractUserId(jwtToken);
+//        return ResponseEntity.ok(userId);
+//    } catch (IllegalArgumentException e) {
+//        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid token");
+//    }
+//}
