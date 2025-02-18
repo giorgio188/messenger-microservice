@@ -8,6 +8,7 @@ import com.messenger.group_chat_service.models.enums.Roles;
 import com.messenger.group_chat_service.repositories.GroupChatMembersRepository;
 import com.messenger.group_chat_service.repositories.GroupChatRepository;
 import com.messenger.group_chat_service.utils.MapperForDTO;
+import com.messenger.group_chat_service.utils.UserInfoUtil;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.AccessDeniedException;
@@ -29,8 +30,7 @@ public class GroupChatService {
     private final MapperForDTO mapperForDTO;
     private final String AVATAR_DIRECTORY = "groupchat-avatar";
     private final S3Service s3Service;
-
-    //TODO сделать проверку на существование юзера
+    private final UserInfoUtil userInfoUtil;
 
     @Transactional
     public void createGroupChat(String groupName, String description, int creatorId) {
@@ -43,9 +43,9 @@ public class GroupChatService {
 
     }
 
-    @Transactional
     public void addUser(int groupChatId, int currentUserId, int userToAddId, Roles role) {
-        if (groupChatMembersRepository.existsByIdAndMemberId(groupChatId, currentUserId)) {
+        if (groupChatMembersRepository.existsByIdAndMemberId(groupChatId, currentUserId)
+                && userInfoUtil.ifUserExists(userToAddId).block()) {
             GroupChat groupChat = groupChatRepository.findById(groupChatId).get();
             GroupChatMembers member = new GroupChatMembers();
             member.setMemberId(userToAddId);
@@ -55,6 +55,7 @@ public class GroupChatService {
         } else {
             throw new EntityNotFoundException("User with id " + currentUserId + " not a member of group chat with id " + groupChatId);
         }
+
 
     }
 
@@ -90,8 +91,10 @@ public class GroupChatService {
 
     @Transactional
     public void deleteUser(int groupChatId, int userToDeleteId, int currentUserId) {
-        if (isAdmin(groupChatId, currentUserId)) {
-            GroupChat groupChat = groupChatRepository.findById(groupChatId).get();
+        GroupChat groupChat = groupChatRepository.findById(groupChatId)
+                .orElseThrow(() -> new EntityNotFoundException("GroupChat not found"));
+        boolean isMember = groupChat.getGroupChatMembers().stream().anyMatch(member -> member.getMemberId() == userToDeleteId);
+        if (isAdmin(groupChatId, currentUserId) && isMember) {
             GroupChatMembers member = groupChatMembersRepository.findByGroupChatAndMemberId(groupChat, currentUserId);
             groupChatMembersRepository.delete(member);
         } else {
@@ -163,6 +166,8 @@ public class GroupChatService {
         String avatarName = groupChat.getAvatar();
         return s3Service.getFileUrl(avatarName);
     }
+
+
 
     private boolean isAdmin(int groupChatId, int userId) {
         GroupChat groupChat = groupChatRepository.findById(groupChatId).get();

@@ -8,6 +8,7 @@ spring:
     kubernetes:
       discovery:
         enabled: true
+
   datasource:
     url: ${DB_USER_URL}
     username: ${DB_USER_USERNAME}
@@ -18,6 +19,7 @@ spring:
     redis:
       host: redis
       port: 6379
+      database: 0
 
   jpa:
     show-sql: true

@@ -3,7 +3,6 @@ package com.messenger.auth_service.services;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.ReactiveRedisTemplate;
 import org.springframework.stereotype.Service;
-import reactor.core.publisher.Mono;
 
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;

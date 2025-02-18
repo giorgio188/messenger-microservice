@@ -1,18 +1,30 @@
 server:
   port: 8083
+
 api:
   gateway:
     url: ${GATEWAY_URL}
+
 encryption:
   password: ${ENCRYPTION_PASSWORD}
   salt: ${ENCRYPTION_SALT}
+
 spring:
+
   application:
     name: private-chat-service
+
   cloud:
     kubernetes:
       discovery:
         enabled: true
+
+  data:
+    redis:
+      host: redis
+      port: 6379
+      database: 1
+
   datasource:
     url: ${DB_PRIVATE_CHAT_URL}
     username: ${DB_PRIVATE_CHAT_USERNAME}
@@ -24,7 +36,6 @@ spring:
     hibernate:
       ddl-auto: update
 
-  #logs for terminal
   logging:
     level:
       root: INFO
