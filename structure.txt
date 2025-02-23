@@ -1,0 +1,193 @@
+microservices-parent/
+├── .idea/
+├── api-gateway/
+│   ├── k8s/
+│   │   ├── deployment.yml
+│   │   └── service.yml
+│   ├── src/
+│   │   └── main/
+│   │       ├── java/
+│   │       │   └── com.messenger.api_gateway/
+│   │       │       ├── ApiGatewayApplication.java
+│   │       │       ├── AuthenticationFilter.java
+│   │       │       ├── RedisConfig.java
+│   │       │       ├── SecurityConfig.java
+│   │       │       └── WebClientConfig.java
+│   │       └── resources/
+│   │           └── application.yml
+│   ├── Dockerfile
+│   └── pom.xml
+│
+├── auth-service/
+│   ├── src/
+│   │   └── main/
+│   │       ├── java/
+│   │       │   └── com.messenger.auth_service/
+│   │       │       ├── config/
+│   │       │       │   ├── JWTFilter.java
+│   │       │       │   ├── RedisConfig.java
+│   │       │       │   └── SecurityConfig.java
+│   │       │       ├── controllers/
+│   │       │       │   └── AuthController.java
+│   │       │       ├── dto/
+│   │       │       │   ├── AuthDTO.java
+│   │       │       │   ├── RegistrationDTO.java
+│   │       │       │   └── TokenInfo.java
+│   │       │       ├── models/
+│   │       │       │   ├── enums/
+│   │       │       │   │   └── ProfileStatus.java
+│   │       │       │   └── UserProfile.java
+│   │       │       ├── repositories/
+│   │       │       │   └── UserProfileRepository.java
+│   │       │       ├── security/
+│   │       │       │   ├── JWTUtil.java
+│   │       │       │   └── UserProfileDetails.java
+│   │       │       ├── services/
+│   │       │       │   ├── AuthService.java
+│   │       │       │   ├── RegistrationService.java
+│   │       │       │   └── UserProfileDetailsService.java
+│   │       │       ├── utils/
+│   │       │       │   └── UserProfileValidator.java
+│   │       │       └── AuthServiceApplication.java
+│   │       └── resources/
+│   │           └── application.yml
+│   ├── Dockerfile
+│   └── pom.xml
+│
+├── group-chat-service/
+│   ├── src/
+│   │   └── main/
+│   │       ├── java/
+│   │       │   └── com.messenger.group_chat_service/
+│   │       │       ├── config/
+│   │       │       │   ├── EncryptionConfig.java
+│   │       │       │   ├── JacksonConfig.java
+│   │       │       │   ├── ModelMapper.java
+│   │       │       │   ├── RedisConfig.java
+│   │       │       │   ├── S3Config.java
+│   │       │       │   ├── WebClientConfig.java
+│   │       │       │   └── WebSocketConfig.java
+│   │       │       ├── controllers/
+│   │       │       │   ├── GroupChatController.java
+│   │       │       │   ├── GroupChatFileController.java
+│   │       │       │   └── GroupChatMessageController.java
+│   │       │       ├── dto/
+│   │       │       │   ├── GroupChatCreatingDTO.java
+│   │       │       │   ├── GroupChatDTO.java
+│   │       │       │   ├── GroupChatMembersDTO.java
+│   │       │       │   ├── GroupChatMessageDTO.java
+│   │       │       │   └── UserProfileDTO.java
+│   │       │       ├── models/
+│   │       │       │   ├── enums/
+│   │       │       │   │   ├── FileType.java
+│   │       │       │   │   ├── MessageStatus.java
+│   │       │       │   │   └── Roles.java
+│   │       │       │   ├── GroupChat.java
+│   │       │       │   ├── GroupChatFiles.java
+│   │       │       │   ├── GroupChatMembers.java
+│   │       │       │   └── GroupChatMessage.java
+│   │       │       ├── repositories/
+│   │       │       │   ├── GroupChatFileRepository.java
+│   │       │       │   ├── GroupChatMembersRepository.java
+│   │       │       │   ├── GroupChatMessageRepository.java
+│   │       │       │   └── GroupChatRepository.java
+│   │       │       ├── services/
+│   │       │       │   ├── EncryptionService.java
+│   │       │       │   ├── GroupChatFileService.java
+│   │       │       │   ├── GroupChatMessageService.java
+│   │       │       │   ├── GroupChatService.java
+│   │       │       │   └── S3Service.java
+│   │       │       ├── utils/
+│   │       │       │   ├── MapperForDTO.java
+│   │       │       │   └── UserInfoUtil.java
+│   │       │       └── GroupChatServiceApplication.java
+│   │       └── resources/
+│   │           └── application.yml
+│   ├── Dockerfile
+│   └── pom.xml
+│
+├── private-chat-service/
+│   ├── src/
+│   │   └── main/
+│   │       ├── java/
+│   │       │   └── com.messenger.private_chat_service/
+│   │       │       ├── config/
+│   │       │       │   ├── EncryptionConfig.java
+│   │       │       │   ├── JacksonConfig.java
+│   │       │       │   ├── RedisConfig.java
+│   │       │       │   ├── S3Config.java
+│   │       │       │   ├── WebClientConfig.java
+│   │       │       │   └── WebSocketConfig.java
+│   │       │       ├── controllers/
+│   │       │       │   ├── PrivateChatController.java
+│   │       │       │   ├── PrivateChatFileController.java
+│   │       │       │   └── PrivateChatMessageController.java
+│   │       │       ├── dto/
+│   │       │       │   ├── PrivateChatDTO.java
+│   │       │       │   ├── PrivateChatMessageDTO.java
+│   │       │       │   └── UserProfileDTO.java
+│   │       │       ├── models/
+│   │       │       │   ├── enums/
+│   │       │       │   │   ├── FileType.java
+│   │       │       │   │   └── MessageStatus.java
+│   │       │       │   ├── PrivateChat.java
+│   │       │       │   ├── PrivateChatFiles.java
+│   │       │       │   └── PrivateChatMessage.java
+│   │       │       ├── repositories/
+│   │       │       │   ├── PrivateChatFileRepository.java
+│   │       │       │   ├── PrivateChatMessageRepository.java
+│   │       │       │   └── PrivateChatRepository.java
+│   │       │       ├── services/
+│   │       │       │   ├── EncryptionService.java
+│   │       │       │   ├── PrivateChatFileService.java
+│   │       │       │   ├── PrivateChatMessageService.java
+│   │       │       │   ├── PrivateChatService.java
+│   │       │       │   └── S3Service.java
+│   │       │       ├── utils/
+│   │       │       │   ├── MapperForDTO.java
+│   │       │       │   └── UserInfoUtil.java
+│   │       │       └── PrivateChatServiceApplication.java
+│   │       └── resources/
+│   │           └── application.yml
+│   ├── Dockerfile
+│   └── pom.xml
+│
+├── user-service/
+│   ├── src/
+│   │   └── main/
+│   │       ├── java/
+│   │       │   └── com.messenger.user_service/
+│   │       │       ├── config/
+│   │       │       │   ├── JacksonConfig.java
+│   │       │       │   ├── S3Config.java
+│   │       │       │   ├── SecurityConfig.java
+│   │       │       │   └── WebSocketConfig.java
+│   │       │       ├── controllers/
+│   │       │       │   ├── FriendListController.java
+│   │       │       │   └── UserProfileController.java
+│   │       │       ├── dto/
+│   │       │       │   ├── FriendDTO.java
+│   │       │       │   ├── UserProfileDTO.java
+│   │       │       │   └── UserProfilePageDTO.java
+│   │       │       ├── models/
+│   │       │       │   ├── enums/
+│   │       │       │   │   ├── FileType.java
+│   │       │       │   │   └── ProfileStatus.java
+│   │       │       │   ├── FriendList.java
+│   │       │       │   └── UserProfile.java
+│   │       │       ├── repositories/
+│   │       │       │   ├── FriendListRepository.java
+│   │       │       │   └── UserProfileRepository.java
+│   │       │       ├── services/
+│   │       │       │   ├── FriendListService.java
+│   │       │       │   ├── S3Service.java
+│   │       │       │   └── UserProfileService.java
+│   │       │       ├── utils/
+│   │       │       └── UserServiceApplication.java
+│   │       └── resources/
+│   │           └── application.yml
+│   ├── Dockerfile
+│   └── pom.xml
+│
+├── docker-compose.yml
+└── pom.xml
