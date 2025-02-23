@@ -1,5 +1,4 @@
-package com.messenger.group_chat_service.config;
-
+package com.messenger.chat_service.config;
 
 import com.amazonaws.auth.AWSCredentials;
 import com.amazonaws.auth.AWSStaticCredentialsProvider;
@@ -11,7 +10,6 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
-
 public class S3Config {
 
     @Value("${aws.credentials.access-key}")

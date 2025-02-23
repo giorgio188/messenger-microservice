@@ -1,17 +1,14 @@
 server:
-  port: 8084
+  port: 8083
 
 api:
   gateway:
     url: ${GATEWAY_URL}
 
-encryption:
-  password: ${ENCRYPTION_PASSWORD}
-  salt: ${ENCRYPTION_SALT}
-
 spring:
+
   application:
-    name: private-chat-service
+    name: chat-service
 
   cloud:
     kubernetes:
@@ -25,9 +22,9 @@ spring:
       database: 1
 
   datasource:
-    url: ${DB_GROUP_CHAT_URL}
-    username: ${DB_GROUP_CHAT_USERNAME}
-    password: ${DB_GROUP_CHAT_PASSWORD}
+    url: ${DB_CHATS_URL}
+    username: ${DB_CHATS_USERNAME}
+    password: ${DB_CHATS_PASSWORD}
     driver-class-name: org.postgresql.Driver
 
   jpa:
