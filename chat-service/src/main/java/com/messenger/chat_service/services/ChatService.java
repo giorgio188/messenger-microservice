@@ -3,7 +3,9 @@ package com.messenger.chat_service.services;
 import com.messenger.chat_service.dto.ChatDTO;
 import com.messenger.chat_service.dto.ChatMemberDTO;
 import com.messenger.chat_service.dto.GroupChatCreationDTO;
+import com.messenger.chat_service.exceptions.ChatAccessDeniedException;
 import com.messenger.chat_service.exceptions.ChatNotFoundException;
+import com.messenger.chat_service.exceptions.ChatValidationException;
 import com.messenger.chat_service.exceptions.UserNotFoundException;
 import com.messenger.chat_service.models.Chat;
 import com.messenger.chat_service.models.ChatMember;
@@ -17,6 +19,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -25,7 +28,6 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
-@Transactional(readOnly = true)
 public class ChatService {
     private final S3Service s3Service;
     private final MapperDTO mapperDTO;
@@ -61,7 +63,7 @@ public class ChatService {
     }
 
     @Transactional
-    public ChatDTO createPrivateChat(int senderId, int receiverId){
+    public ChatDTO createPrivateChat(int senderId, int receiverId) {
         if (!userInfoUtil.ifUserExists(receiverId).block()) {
             throw new UserNotFoundException("User " + receiverId + " not found");
         }
@@ -85,8 +87,125 @@ public class ChatService {
         return mapperDTO.toChatDTO(chat);
     }
 
-    //TODO сделать метод удаления чата, добавить проверку на ismember, isadmin, iscreator
-    //TODO добавить методы работы с аватаром, назначение на должности, обновления групп чата
+    @Transactional
+    public ChatDTO updateChat(int chatId, int userId, GroupChatCreationDTO dto) {
+        Chat chat = chatRepository.findById(chatId)
+                .orElseThrow(() -> new ChatNotFoundException("Chat not found with id: " + chatId));
+
+        if (chat.getType() != ChatType.GROUP) {
+            throw new ChatValidationException("Only group chats can be updated");
+        }
+
+        if (chat.getSettings().isOnlyAdminsCanChangeInfo()) {
+            boolean isAdmin = chat.getMembers().stream()
+                    .filter(member -> member.getUserId() == userId)
+                    .anyMatch(member -> member.getRole() == ChatRole.ADMIN || member.getRole() == ChatRole.CREATOR);
+            if (!isAdmin) {
+                throw new ChatAccessDeniedException("Only admins can update chat details");
+            }
+        } else {
+            boolean isMember = chat.getMembers().stream()
+                    .anyMatch(member -> member.getUserId() == userId);
+            if (!isMember) {
+                throw new ChatAccessDeniedException("User is not a member of this chat");
+            }
+        }
+
+        if (dto.getName() != null && !dto.getName().isEmpty()) {
+            chat.setName(dto.getName());
+        }
+
+        if (dto.getDescription() != null && !dto.getDescription().isEmpty()) {
+            chat.setDescription(dto.getDescription());
+        }
+
+        chat = chatRepository.save(chat);
+        return mapperDTO.toChatDTO(chat);
+    }
+
+    @Transactional
+    public void deleteChat(int chatId, int userId) {
+        Chat chat = chatRepository.findById(chatId)
+                .orElseThrow(() -> new ChatNotFoundException("Chat not found with id: " + chatId));
+
+        if (chat.getType() == ChatType.GROUP) {
+            boolean isCreator = chat.getMembers().stream()
+                    .filter(member -> member.getUserId() == userId)
+                    .anyMatch(member -> member.getRole() == ChatRole.CREATOR);
+
+            if (!isCreator) {
+                throw new ChatAccessDeniedException("Only the creator can delete this chat");
+            }
+        } else {
+            boolean isMember = chat.getMembers().stream()
+                    .anyMatch(member -> member.getUserId() == userId);
+
+            if (!isMember) {
+                throw new ChatAccessDeniedException("User is not a member of this chat");
+            }
+        }
+
+        chatRepository.delete(chat);
+    }
+
+    @Transactional
+    public String uploadAvatar(int chatId, int userId, MultipartFile file) {
+        Chat chat = chatRepository.findById(chatId)
+                .orElseThrow(() -> new ChatNotFoundException("Chat not found with id: " + chatId));
+        if (chat.getType() == ChatType.GROUP) {
+            boolean isAdmin = chat.getMembers().stream()
+                    .filter(member -> member.getUserId() == userId)
+                    .anyMatch(member -> member.getRole() == ChatRole.ADMIN || member.getRole() == ChatRole.CREATOR);
+
+            if (!isAdmin) {
+                throw new ChatAccessDeniedException("Only admins can update chat avatar");
+            }
+        }
+
+        try {
+            String avatarUrl = s3Service.uploadFile(file, "groupchat-avatars");
+            if (chat.getAvatar() != null && !chat.getAvatar().isEmpty()) {
+                s3Service.deleteFile(chat.getAvatar());
+            }
+            chat.setAvatar(avatarUrl);
+            chatRepository.save(chat);
+            return avatarUrl;
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to upload file to S3: " + e.getMessage());
+        }
+
+    }
+
+    @Transactional
+    public void deleteChatAvatar(int chatId, int userId) {
+        Chat chat = chatRepository.findById(chatId)
+                .orElseThrow(() -> new ChatNotFoundException("Chat not found with id: " + chatId));
+
+        // Проверяем права
+        if (chat.getType() == ChatType.GROUP) {
+            boolean isAdmin = chat.getMembers().stream()
+                    .filter(member -> member.getUserId() == userId)
+                    .anyMatch(member -> member.getRole() == ChatRole.ADMIN || member.getRole() == ChatRole.CREATOR);
+
+            if (!isAdmin) {
+                throw new ChatAccessDeniedException("Only admins can update chat avatar");
+            }
+        } else {
+            throw new ChatValidationException("Private chats do not have avatars");
+        }
+
+        if (chat.getAvatar() != null && !chat.getAvatar().isEmpty()) {
+            try {
+                // Удаляем аватар из хранилища
+                s3Service.deleteFile(chat.getAvatar());
+
+                chat.setAvatar(null);
+                chatRepository.save(chat);
+            } catch (Exception e) {
+                throw new RuntimeException("Failed to delete avatar: " + e.getMessage(), e);
+            }
+        }
+    }
 
     private void validateChatAccess(Chat chat, int userId) {
         boolean isMember = chat.getMembers().stream()

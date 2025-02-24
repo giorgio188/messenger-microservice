@@ -20,11 +20,24 @@ public class S3Service {
     private String bucketName;
 
     public String uploadFile(MultipartFile file, String directory) {
+        if (file.isEmpty()) {
+            throw new IllegalArgumentException("File cannot be empty");
+        }
+
+        String contentType = file.getContentType();
+        if (contentType == null) {
+            throw new IllegalArgumentException("Content type cannot be determined");
+        }
+
+        if (!isImageContentType(contentType)) {
+            throw new IllegalArgumentException("Only image files are allowed (JPEG, PNG, GIF)");
+        }
+
         try {
             String fileName = generateFileName(file, directory);
 
             ObjectMetadata metadata = new ObjectMetadata();
-            metadata.setContentType(file.getContentType());
+            metadata.setContentType(contentType);
             metadata.setContentLength(file.getSize());
 
             PutObjectRequest request = new PutObjectRequest(bucketName,
@@ -35,7 +48,7 @@ public class S3Service {
             s3Client.putObject(request);
             return fileName;
         } catch (IOException e) {
-            throw new RuntimeException("Failed to upload file to S3" + e.getMessage());
+            throw new RuntimeException("Failed to upload file to S3: " + e.getMessage());
         }
     }
 
@@ -65,6 +78,15 @@ public class S3Service {
 
     public String getFileUrl(String fileName) {
         return s3Client.getUrl(bucketName, fileName).toString();
+    }
+
+    private boolean isImageContentType(String contentType) {
+        return contentType.startsWith("image/") && (
+                contentType.equals("image/jpeg") ||
+                        contentType.equals("image/jpg") ||
+                        contentType.equals("image/png") ||
+                        contentType.equals("image/gif")
+        );
     }
 
 }
