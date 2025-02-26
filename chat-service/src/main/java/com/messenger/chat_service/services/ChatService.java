@@ -181,7 +181,6 @@ public class ChatService {
         Chat chat = chatRepository.findById(chatId)
                 .orElseThrow(() -> new ChatNotFoundException("Chat not found with id: " + chatId));
 
-        // Проверяем права
         if (chat.getType() == ChatType.GROUP) {
             boolean isAdmin = chat.getMembers().stream()
                     .filter(member -> member.getUserId() == userId)
@@ -196,7 +195,6 @@ public class ChatService {
 
         if (chat.getAvatar() != null && !chat.getAvatar().isEmpty()) {
             try {
-                // Удаляем аватар из хранилища
                 s3Service.deleteFile(chat.getAvatar());
 
                 chat.setAvatar(null);
