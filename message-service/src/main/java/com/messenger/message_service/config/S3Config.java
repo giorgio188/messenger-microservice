@@ -1,5 +1,4 @@
-package com.messenger.chat_service.config;
-
+package com.messenger.message_service.config;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -13,13 +12,13 @@ import software.amazon.awssdk.services.s3.presigner.S3Presigner;
 @Configuration
 public class S3Config {
 
-    @Value("${aws.credentials.access-key}")
+    @Value("{aws.credentials.access-key}")
     private String accessKey;
 
-    @Value("${aws.credentials.secret-key}")
+    @Value("{aws.credentials.secret-key}")
     private String secretKey;
 
-    @Value("${aws.region.static}")
+    @Value("{aws.region.static}")
     private String region;
 
     @Bean
@@ -43,4 +42,5 @@ public class S3Config {
                 .credentialsProvider(StaticCredentialsProvider.create(credentials))
                 .build();
     }
+
 }

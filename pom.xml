@@ -14,8 +14,7 @@
 		<module>auth-service</module>
 		<module>user-service</module>
 		<module>chat-service</module>
-		<module>private-chat-service</module>
-		<module>group-chat-service</module>
+		<module>message-service</module>
 	</modules>
 
 	<properties>
@@ -32,7 +31,7 @@
 		<spring-web.version>6.2.3</spring-web.version>
 		<spring-env.version>4.0.0</spring-env.version>
 		<spring-security.version>6.4.3</spring-security.version>
-		<amazon-aws.version>1.12.782</amazon-aws.version>
+		<amazon-aws.version>2.20.56</amazon-aws.version>
 		<modelmapper.version>3.2.1</modelmapper.version>
 	</properties>
 
@@ -138,8 +137,8 @@
 				<version>${spring-security.version}</version>
 			</dependency>
 			<dependency>
-				<groupId>com.amazonaws</groupId>
-				<artifactId>aws-java-sdk-s3</artifactId>
+				<groupId>software.amazon.awssdk</groupId>
+				<artifactId>s3</artifactId>
 				<version>${amazon-aws.version}</version>
 			</dependency>
 			<dependency>
@@ -216,6 +215,10 @@
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-webflux</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>software.amazon.awssdk</groupId>
+			<artifactId>s3</artifactId>
 		</dependency>
 <!--		<dependency>-->
 <!--			<groupId>org.springframework.cloud</groupId>-->
