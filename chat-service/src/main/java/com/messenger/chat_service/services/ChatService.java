@@ -2,6 +2,7 @@ package com.messenger.chat_service.services;
 
 import com.messenger.chat_service.dto.ChatDTO;
 import com.messenger.chat_service.dto.ChatMemberDTO;
+import com.messenger.chat_service.dto.ChatPermissionsDTO;
 import com.messenger.chat_service.dto.GroupChatCreationDTO;
 import com.messenger.chat_service.exceptions.ChatAccessDeniedException;
 import com.messenger.chat_service.exceptions.ChatNotFoundException;

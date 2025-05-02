@@ -30,7 +30,7 @@
 		<java-jwt.version>4.4.0</java-jwt.version>
 		<spring-web.version>6.2.3</spring-web.version>
 		<spring-env.version>4.0.0</spring-env.version>
-		<spring-security.version>6.4.3</spring-security.version>
+		<spring-security.version>6.4.4</spring-security.version>
 		<amazon-aws.version>2.20.56</amazon-aws.version>
 		<modelmapper.version>3.2.1</modelmapper.version>
 	</properties>

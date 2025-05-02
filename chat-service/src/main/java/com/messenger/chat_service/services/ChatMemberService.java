@@ -245,6 +245,31 @@ public class ChatMemberService {
         chatMemberRepository.save(member);
     }
 
+    public List<Integer> getMutedMemberIds(int chatId) {
+        Chat chat = chatRepository.findById(chatId)
+                .orElseThrow(() -> new ChatNotFoundException("Chat not found"));
+        validateGroupChat(chat);
+        List<ChatMember> mutedMembers = chatMemberRepository.findByChatIdAndIsMutedTrue(chatId);
+
+        return mutedMembers.stream()
+                .map(ChatMember::getUserId)
+                .collect(Collectors.toList());
+    }
+
+    public List<Integer> getAdminMemberIds(int chatId) {
+        Chat chat = chatRepository.findById(chatId)
+                .orElseThrow(() -> new ChatNotFoundException("Chat not found"));
+        validateGroupChat(chat);
+        List<ChatMember> adminMembers = chatMemberRepository.findByChatIdAndRoleIn(
+                chatId,
+                List.of(ChatRole.ADMIN, ChatRole.CREATOR)
+        );
+
+        return adminMembers.stream()
+                .map(ChatMember::getUserId)
+                .collect(Collectors.toList());
+    }
+
     private void validateCreatorRights(Chat chat, int userId) {
         boolean isCreator = chat.getMembers().stream()
                 .filter(member -> member.getUserId() == userId)
@@ -268,6 +293,8 @@ public class ChatMemberService {
             throw new AccessDeniedException("Only admins can perform this operation");
         }
     }
+
+
 
 
 }

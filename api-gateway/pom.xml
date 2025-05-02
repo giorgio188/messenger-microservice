@@ -54,7 +54,7 @@
 				<executions>
 					<execution>
 						<goals>
-							<goal>repackage</goal> <!-- Добавьте эту цель -->
+							<goal>repackage</goal>
 						</goals>
 					</execution>
 				</executions>

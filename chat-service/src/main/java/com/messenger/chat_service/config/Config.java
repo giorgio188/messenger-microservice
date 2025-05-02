@@ -18,7 +18,7 @@ public class Config {
 
     @Bean
     public ModelMapper modelMapper() {
-        return new org.modelmapper.ModelMapper();
+        return new ModelMapper();
     }
 
 }

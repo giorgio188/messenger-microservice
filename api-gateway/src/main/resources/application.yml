@@ -44,23 +44,6 @@ spring:
             - Path=/api/user/**
             - Path=/api/friends/**
 
-        - id: private-chat-service
-          uri: http://private-chat-service:8083
-          filters:
-            - name: AuthenticationFilter
-          predicates:
-            - Path=/api/private-chat
-            - Path=/api/private-file
-            - Path=/api/private-message
-
-        - id: group-chat-service
-          uri: http://group-chat-service:8084
-          filters:
-            - name: AuthenticationFilter
-          predicates:
-            - Path=/api/group-chat
-            - Path=/api/group-file
-            - Path=/api/group-message
 
     kubernetes:
       discovery:
