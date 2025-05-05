@@ -1,8 +1,6 @@
 package com.messenger.chat_service.services;
 
 import com.messenger.chat_service.dto.ChatDTO;
-import com.messenger.chat_service.dto.ChatMemberDTO;
-import com.messenger.chat_service.dto.ChatPermissionsDTO;
 import com.messenger.chat_service.dto.GroupChatCreationDTO;
 import com.messenger.chat_service.exceptions.ChatAccessDeniedException;
 import com.messenger.chat_service.exceptions.ChatNotFoundException;
@@ -204,6 +202,11 @@ public class ChatService {
                 throw new RuntimeException("Failed to delete avatar: " + e.getMessage(), e);
             }
         }
+    }
+
+    public void checkChatAccess(int chatId, int userId) {
+        Chat chat = chatRepository.findById(chatId).orElseThrow(() -> new ChatNotFoundException("Chat not found with id: " + chatId));
+        validateChatAccess(chat, userId);
     }
 
     private void validateChatAccess(Chat chat, int userId) {

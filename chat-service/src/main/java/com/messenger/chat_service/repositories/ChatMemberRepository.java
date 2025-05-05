@@ -10,7 +10,6 @@ import java.util.Optional;
 
 @Repository
 public interface ChatMemberRepository extends JpaRepository<ChatMember, Integer> {
-    Optional<ChatMember> findByChatIdAndUserId(int chatId, int userId);
     List<ChatMember> findByChatIdAndIsMutedTrue(int chatId);
     List<ChatMember> findByChatIdAndRoleIn(int chatId, List<ChatRole> roles);
 

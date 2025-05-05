@@ -11,6 +11,9 @@ import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Component;
 
+import java.util.List;
+import java.util.stream.Collectors;
+
 @Component
 @RequiredArgsConstructor
 public class MapperDTO {
@@ -36,6 +39,16 @@ public class MapperDTO {
             }
         } catch (Exception e) {
             dto.setSenderUsername("Unknown user");
+        }
+
+        if (message.getFiles() !=null && !message.getFiles().isEmpty()) {
+            List<FileDTO> files = message.getFiles().stream()
+                    .filter(file -> !file.isDeleted())
+                    .map(file -> modelMapper.map(file, FileDTO.class))
+                    .collect(Collectors.toList());
+            dto.setFiles(files);
+        } else {
+            dto.setFiles(null);
         }
 
         return dto;

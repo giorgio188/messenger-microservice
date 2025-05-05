@@ -1,10 +1,8 @@
 package com.messenger.chat_service.controllers;
 
 import com.messenger.chat_service.dto.ChatDTO;
-import com.messenger.chat_service.dto.ChatPermissionsDTO;
 import com.messenger.chat_service.dto.ChatSettingsDTO;
 import com.messenger.chat_service.dto.GroupChatCreationDTO;
-import com.messenger.chat_service.models.Chat;
 import com.messenger.chat_service.services.ChatMemberService;
 import com.messenger.chat_service.services.ChatService;
 import com.messenger.chat_service.services.ChatSettingsService;
@@ -81,33 +79,6 @@ public class ChatController {
                                              @PathVariable int chatId) {
         chatService.deleteChatAvatar(userId, chatId);
         return ResponseEntity.noContent().build();
-    }
-
-    @GetMapping("/{chatId}/permissions")
-    public ResponseEntity<ChatPermissionsDTO> getChatPermissions(
-            @RequestHeader("X-User-Id") int userId,
-            @PathVariable int chatId) {
-
-        ChatDTO chat = chatService.getChat(userId, chatId);
-        boolean isMember = chat.getMembers().stream()
-                .anyMatch(member -> member.getUserId() == userId);
-        if (!isMember) {
-            throw new AccessDeniedException("User does not have access to this chat");
-        }
-
-        ChatPermissionsDTO permissions = new ChatPermissionsDTO();
-        permissions.setChatId(chatId);
-
-        ChatSettingsDTO settings = chatSettingsService.getChatSettings(chatId, userId);
-        permissions.setOnlyAdminsCanWrite(settings.isOnlyAdminsCanWrite());
-
-        List<Integer> mutedUserIds = chatMemberService.getMutedMemberIds(chatId);
-        permissions.setMutedUserIds(mutedUserIds);
-
-        List<Integer> adminUserIds = chatMemberService.getAdminMemberIds(chatId);
-        permissions.setAdminUserIds(adminUserIds);
-
-        return ResponseEntity.ok(permissions);
     }
 
 }

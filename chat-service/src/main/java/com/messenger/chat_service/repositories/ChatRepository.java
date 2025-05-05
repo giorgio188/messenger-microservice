@@ -12,6 +12,7 @@ import java.util.Optional;
 
 @Repository
 public interface ChatRepository extends JpaRepository<Chat, Integer> {
+
     @Query("SELECT c FROM Chat c " +
             "JOIN c.members m " +
             "WHERE m.userId = :userId " +
@@ -40,4 +41,6 @@ public interface ChatRepository extends JpaRepository<Chat, Integer> {
             @Param("chatId") int chatId,
             @Param("userId") int userId
     );
+
+
 }

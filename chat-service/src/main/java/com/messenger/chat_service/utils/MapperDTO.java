@@ -1,12 +1,13 @@
 package com.messenger.chat_service.utils;
 
 import com.messenger.chat_service.dto.*;
-import com.messenger.chat_service.models.Chat;
-import com.messenger.chat_service.models.ChatMember;
-import com.messenger.chat_service.models.ChatSettings;
+import com.messenger.chat_service.models.*;
 import com.messenger.chat_service.models.enums.ChatRole;
 import com.messenger.chat_service.models.enums.ChatType;
+import com.messenger.chat_service.services.EncryptionService;
+import com.messenger.chat_service.services.S3Service;
 import lombok.RequiredArgsConstructor;
+import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Component;
 
 import java.time.Duration;
@@ -18,8 +19,10 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class MapperDTO {
 
+    private final ModelMapper modelMapper;
+    private final S3Service s3Service;
     private final UserInfoUtil userInfoUtil;
-
+    private final EncryptionService encryptionService;
 
     public ChatDTO toChatDTO(Chat chat) {
         ChatDTO dto = new ChatDTO();
@@ -94,5 +97,58 @@ public class MapperDTO {
         settings.setOnlyAdminsCanRemoveMembers(false);
         settings.setOnlyAdminsCanChangeInfo(false);
         return settings;
+    }
+
+    public MessageDTO toMessageDTO(Message message) {
+        MessageDTO dto = modelMapper.map(message, MessageDTO.class);
+
+        if (message.getContent() != null && !message.getContent().isEmpty()) {
+            dto.setContent(encryptionService.decrypt(message.getContent()));
+        }
+
+        try {
+            ChatParticipantDTO sender = userInfoUtil.getUserProfile(message.getSenderId()).block();
+            if (sender != null) {
+                dto.setSenderUsername(sender.getUsername());
+                dto.setSenderNickname(sender.getNickname());
+                dto.setSenderAvatar(sender.getAvatar());
+            }
+        } catch (Exception e) {
+            dto.setSenderUsername("Unknown user");
+        }
+
+        if (message.getFiles() !=null && !message.getFiles().isEmpty()) {
+            List<FileDTO> files = message.getFiles().stream()
+                    .filter(file -> !file.isDeleted())
+                    .map(file -> modelMapper.map(file, FileDTO.class))
+                    .collect(Collectors.toList());
+            dto.setFiles(files);
+        } else {
+            dto.setFiles(null);
+        }
+
+        return dto;
+    }
+
+    public FileDTO toFileDTO(File file) {
+
+        FileDTO dto = modelMapper.map(file, FileDTO.class);
+
+        dto.setFileUrl(s3Service.getFileUrl(file.getFilePath()));
+
+        try {
+            ChatParticipantDTO sender = userInfoUtil.getUserProfile(file.getSenderId()).block();
+            if (sender != null) {
+                dto.setSenderUsername(sender.getUsername());
+                dto.setSenderNickname(sender.getNickname());
+            }
+        } catch (Exception e) {
+            dto.setSenderUsername("Unknown user");
+        }
+        if (file.getMessage() != null) {
+            dto.setMessageId(file.getMessage().getId());
+        }
+
+        return dto;
     }
 }

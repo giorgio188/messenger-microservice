@@ -7,11 +7,11 @@ import com.messenger.message_service.repositories.MessageRepository;
 import com.messenger.message_service.utils.ChatAccessUtil;
 import com.messenger.message_service.utils.MapperDTO;
 import com.messenger.message_service.utils.UserInfoUtil;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
@@ -25,6 +25,14 @@ public class MessageService {
         chatAccessUtil.hasUserAccessToChat(chatId, userId);
         Page<Message> messages = messageRepository.findByChatIdWithFilesOrderBySentAtDesc(chatId, pageable);
         return messages.map(mapperDTO::toMessageDTO);
+    }
+
+
+    @Transactional
+    public MessageDTO sendTextMessage(int chatId, int userId, String content){
+        chatAccessUtil.hasUserAccessToChat(chatId, userId);
+
+        Chat chat
     }
 
 }
