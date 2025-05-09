@@ -60,7 +60,6 @@ public class AuthenticationFilter extends AbstractGatewayFilterFactory<Authentic
                 return onError(exchange, "Error processing token", HttpStatus.INTERNAL_SERVER_ERROR);
             }
 
-            // Проверка токена
             return redisTemplate.opsForValue().get(tokenHash)
                     .switchIfEmpty(Mono.defer(() -> {
                         return webClientBuilder.build()

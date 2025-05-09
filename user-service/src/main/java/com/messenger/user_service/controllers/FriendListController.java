@@ -30,7 +30,6 @@ public class FriendListController {
         return ResponseEntity.ok(friendList);
     }
 
-    // WebSocket endpoint для добавления друга
     @MessageMapping("/friend.add")
     public void handleAddFriend(@Payload Map<String, Object> payload,
                                 SimpMessageHeaderAccessor headerAccessor) {

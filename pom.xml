@@ -13,8 +13,7 @@
 		<module>api-gateway</module>
 		<module>auth-service</module>
 		<module>user-service</module>
-		<module>private-chat-service</module>
-		<module>group-chat-service</module>
+		<module>chat-service</module>
 	</modules>
 
 	<properties>
@@ -24,12 +23,15 @@
 		<spring-cloud.version>2024.0.0</spring-cloud.version>
 		<spring-cloud-kubernetes.version>3.2.0</spring-cloud-kubernetes.version>
 		<lombok.version>1.18.36</lombok.version>
-		<spring-boot.version>3.4.2</spring-boot.version>
+		<spring-boot.version>3.4.3</spring-boot.version>
 		<postgresql.version>42.7.4</postgresql.version>
 		<jackson-datatype-jsr310.version>2.18.2</jackson-datatype-jsr310.version>
 		<java-jwt.version>4.4.0</java-jwt.version>
-		<spring-web.version>6.2.1</spring-web.version>
+		<spring-web.version>6.2.3</spring-web.version>
 		<spring-env.version>4.0.0</spring-env.version>
+		<spring-security.version>6.4.4</spring-security.version>
+		<amazon-aws.version>2.20.56</amazon-aws.version>
+		<modelmapper.version>3.2.1</modelmapper.version>
 	</properties>
 
 	<dependencyManagement>
@@ -128,6 +130,21 @@
 				<artifactId>spring-boot-starter-webflux</artifactId>
 				<version>${spring-boot.version}</version>
 			</dependency>
+			<dependency>
+				<groupId>org.springframework.security</groupId>
+				<artifactId>spring-security-crypto</artifactId>
+				<version>${spring-security.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>software.amazon.awssdk</groupId>
+				<artifactId>s3</artifactId>
+				<version>${amazon-aws.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.modelmapper</groupId>
+				<artifactId>modelmapper</artifactId>
+				<version>${modelmapper.version}</version>
+			</dependency>
 		</dependencies>
 	</dependencyManagement>
 
@@ -197,6 +214,10 @@
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-webflux</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>software.amazon.awssdk</groupId>
+			<artifactId>s3</artifactId>
 		</dependency>
 <!--		<dependency>-->
 <!--			<groupId>org.springframework.cloud</groupId>-->
