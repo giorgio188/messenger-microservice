@@ -26,8 +26,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/auth/login", "api/auth/registration", "error").permitAll()
                         .requestMatchers("/api/auth/verify", "api/auth/logout", "error").authenticated()
                         .requestMatchers("api/user/**", "api/friends/**").authenticated()
-                        .requestMatchers("api/private-chat/**", "api/private-message/**", "api/private-file/**").authenticated()
-                        .requestMatchers("api/group-chat/**", "api/group-message/**", "api/group-file/**").authenticated()
+                        .requestMatchers("api/chats/**").authenticated()
                         .anyRequest().authenticated()
                 )
                 .formLogin(formLogin -> formLogin
