@@ -49,7 +49,7 @@ services:
       - "8081:8081"
     environment:
       - SPRING_PROFILES_ACTIVE=docker
-      - DB_USER_URL=jdbc:postgresql://auth_user_friends_db:5432/${DB_USER_NAME}
+      - DB_USER_URL=${DB_USER_URL}
       - DB_USER_USERNAME=${DB_USER_USERNAME}
       - DB_USER_PASSWORD=${DB_USER_PASSWORD}
       - JWT_SECRET=${JWT_SECRET}
@@ -67,7 +67,7 @@ services:
       - "8082:8082"
     environment:
       - SPRING_PROFILES_ACTIVE=docker
-      - DB_USER_URL=jdbc:postgresql://auth_user_friends_db:5432/${DB_USER_NAME}
+      - DB_USER_URL=${DB_USER_URL}
       - DB_USER_USERNAME=${DB_USER_USERNAME}
       - DB_USER_PASSWORD=${DB_USER_PASSWORD}
       - JWT_SECRET=${JWT_SECRET}
@@ -80,6 +80,46 @@ services:
     depends_on:
       - auth_user_friends_db
       - redis
+
+  chat-service:
+      build:
+        context: ./chat-service
+        dockerfile: Dockerfile
+      ports:
+        - "8083:8083"
+      environment:
+        - SPRING_PROFILES_ACTIVE=docker
+        - DB_CHATS_URL=${DB_CHATS_URL}
+        - DB_CHATS_USERNAME=${DB_CHATS_USERNAME}
+        - DB_CHATS_PASSWORD=${DB_CHATS_PASSWORD}
+        - JWT_SECRET=${JWT_SECRET}
+        - AWS_ACCESS_KEY=${AWS_ACCESS_KEY}
+        - AWS_SECRET_KEY=${AWS_SECRET_KEY}
+        - AWS_REGION=${AWS_REGION}
+        - AWS_BUCKET=${AWS_BUCKET}
+        - ENCRYPTION_PASSWORD=${ENCRYPTION_PASSWORD}
+        - ENCRYPTION_SALT=${ENCRYPTION_SALT}
+      networks:
+        - microservices-network
+      depends_on:
+        - chats_db
+        - redis
+
+  chats_db:
+    image: postgres:17
+    container_name: chats_db
+    environment:
+      - POSTGRES_DB=${DB_CHATS_NAME}
+      - POSTGRES_USER=${DB_CHATS_USERNAME}
+      - POSTGRES_PASSWORD=${DB_CHATS_PASSWORD}
+      - POSTGRES_ADMIN_PASSWORD=${POSTGRES_ADMIN_PASSWORD}
+    ports:
+      - "5432:5433"
+    volumes:
+      - db_data:/var/lib/postgresql/data
+      - ./chat-service:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - microservices-network
 
 networks:
   microservices-network:

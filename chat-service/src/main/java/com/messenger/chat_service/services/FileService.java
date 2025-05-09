@@ -7,7 +7,6 @@ import com.messenger.chat_service.models.Message;
 import com.messenger.chat_service.models.enums.ChatRole;
 import com.messenger.chat_service.models.enums.ChatType;
 import com.messenger.chat_service.models.enums.FileType;
-import com.messenger.chat_service.repositories.ChatRepository;
 import com.messenger.chat_service.repositories.FileRepository;
 import com.messenger.chat_service.utils.MapperDTO;
 import jakarta.transaction.Transactional;

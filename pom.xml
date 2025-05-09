@@ -14,7 +14,6 @@
 		<module>auth-service</module>
 		<module>user-service</module>
 		<module>chat-service</module>
-		<module>message-service</module>
 	</modules>
 
 	<properties>
