@@ -1,6 +1,6 @@
 package com.messenger.chat_service.config;
 
-import com.messenger.message_service.utils.WebSocketAuthInterceptor;
+import com.messenger.chat_service.utils.WebSocketAuthInterceptor;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.messaging.simp.config.ChannelRegistration;
 import org.springframework.messaging.simp.config.MessageBrokerRegistry;

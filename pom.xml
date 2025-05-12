@@ -32,6 +32,7 @@
 		<spring-security.version>6.4.4</spring-security.version>
 		<amazon-aws.version>2.20.56</amazon-aws.version>
 		<modelmapper.version>3.2.1</modelmapper.version>
+		<uaParser.version>1.6.1</uaParser.version>
 	</properties>
 
 	<dependencyManagement>
@@ -144,6 +145,11 @@
 				<groupId>org.modelmapper</groupId>
 				<artifactId>modelmapper</artifactId>
 				<version>${modelmapper.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>com.github.ua-parser</groupId>
+				<artifactId>uap-java</artifactId>
+				<version>${uaParser.version}</version>
 			</dependency>
 		</dependencies>
 	</dependencyManagement>
