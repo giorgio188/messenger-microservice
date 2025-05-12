@@ -4,7 +4,7 @@ import lombok.Data;
 
 @Data
 public class DeviceInfo {
-    private int deviceId;       // Уникальный идентификатор устройства (fingerprint)
+    private String deviceId;       // Уникальный идентификатор устройства (fingerprint)
     private String deviceName;     // Название устройства (например, "iPhone 13", "Chrome on MacBook")
     private String deviceType;     // Тип устройства (мобильный, планшет, десктоп)
     private String osName;         // Название ОС
