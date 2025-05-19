@@ -2,11 +2,10 @@ package com.messenger.auth_service.models;
 
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
-import lombok.Data;
 import lombok.RequiredArgsConstructor;
+import lombok.Data;
 
 import java.time.LocalDateTime;
-import java.util.Date;
 
 @Entity
 @Table(name = "user_devices")
@@ -25,6 +24,21 @@ public class UserDevice {
     @Column(name = "device_details")
     @NotNull
     private String deviceDetails;  //fingerprint
+
+    @Column
+    private String deviceType;
+
+    @Column
+    private String osName;
+
+    @Column
+    private String osVersion;
+
+    @Column
+    private String browserName;
+
+    @Column
+    private String browserVersion;
 
     @Column(name = "device_name")
     @NotNull
