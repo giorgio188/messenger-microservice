@@ -12,6 +12,11 @@ public class MapperDTO {
         DeviceDTO dto = new DeviceDTO();
         dto.setId(device.getId());
         dto.setDeviceName(device.getDeviceName());
+        dto.setDeviceType(device.getDeviceType());
+        dto.setOsName(device.getOsName());
+        dto.setOsVersion(device.getOsVersion());
+        dto.setBrowserName(device.getBrowserName());
+        dto.setBrowserVersion(device.getBrowserVersion());
         dto.setLastLoginDate(device.getLastLogin());
         dto.setIpAddress(device.getIpAddress());
         dto.setTrusted(device.isTrusted());

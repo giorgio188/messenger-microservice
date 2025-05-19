@@ -13,6 +13,7 @@ import com.messenger.auth_service.models.RefreshToken;
 import com.messenger.auth_service.models.UserDevice;
 import com.messenger.auth_service.repositories.RefreshTokenRepository;
 import com.messenger.auth_service.repositories.UserDeviceRepository;
+import com.messenger.auth_service.services.AuthService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -42,6 +43,7 @@ public class JWTUtil {
     @Value("${spring.jwt.refresh-token-expiration-days}")
     private int refreshTokenExpirationDays;
 
+    private final AuthService authService;
     private final RedisTemplate<String, String> redisTemplate;
     private final RefreshTokenRepository refreshTokenRepository;
     private final UserDeviceRepository userDeviceRepository;
@@ -84,7 +86,7 @@ public class JWTUtil {
             newDevice.setDeviceDetails(deviceInfo.getDeviceId());
             newDevice.setDeviceName(deviceInfo.getDeviceName());
             newDevice.setIpAddress(deviceInfo.getIpAddress());
-            newDevice.setLastLoginDate(new Date());
+            newDevice.setLastLogin(LocalDateTime.now());
             return userDeviceRepository.save(newDevice);
         }
     }
@@ -139,6 +141,7 @@ public class JWTUtil {
         refreshToken.setToken(hashToken(token)); // Храним хэш токена, не сам токен
         refreshToken.setUserId(userId);
         refreshToken.setDeviceId(deviceId); // Привязываем к устройству
+        //TODO пофиксить
         refreshToken.setExpiryDate(expiryDate);
         refreshToken.setRevoked(false);
 
@@ -184,7 +187,7 @@ public class JWTUtil {
             DecodedJWT jwt = verifier.verify(refreshToken);
             String username = jwt.getClaim("username").asString();
             int userId = jwt.getClaim("id").asInt();
-            long deviceId = jwt.getClaim("device_id").asLong();
+            int deviceId = jwt.getClaim("device_id").asInt();
             String tokenId = jwt.getId();
 
             // Проверяем токен в БД с учетом устройства
@@ -238,6 +241,14 @@ public class JWTUtil {
 
             DecodedJWT jwt = verifier.verify(token);
             String username = jwt.getClaim("username").asString();
+            int userId = jwt.getClaim("id").asInt();
+            long deviceId = jwt.getClaim("device_id").asLong();
+
+            // Проверяем, не отозвано ли устройство, с которого был выпущен токен
+            if (authService.isDeviceRevoked(userId, deviceId)) {
+                return Optional.empty();
+            }
+
             return Optional.of(username);
         } catch (JWTVerificationException e) {
             return Optional.empty();
@@ -303,11 +314,26 @@ public class JWTUtil {
         // Отзываем все refresh токены для данного устройства
         refreshTokenRepository.updateRevokedByUserIdAndDeviceId(userId, deviceId, true);
 
-        // Можно также отметить устройство как недоверенное
-        userDeviceRepository.findById(deviceId).ifPresent(device -> {
+        // Находим и отзываем все активные access токены, связанные с этим устройством
+        revokeActiveAccessTokensForDevice(userId, deviceId);
+
+        // Отмечаем устройство как недоверенное
+        userDeviceRepository.findById((int)deviceId).ifPresent(device -> {
             device.setTrusted(false);
             userDeviceRepository.save(device);
         });
+    }
+
+    /**
+     * Находит и отзывает все активные access токены для заданного устройства
+     */
+    private void revokeActiveAccessTokensForDevice(int userId, long deviceId) {
+        // Создаем новую таблицу в Redis для хранения отозванных устройств
+        String deviceRevokedKey = String.format("revoked_device:%d:%d", userId, deviceId);
+
+        // Устанавливаем в Redis отметку, что всё устройство отозвано
+        // TTL устанавливаем на максимальный срок жизни access токена
+        authService.markDeviceAsRevoked(deviceRevokedKey, TimeUnit.MINUTES.toMillis(accessTokenExpirationMinutes));
     }
 
     /**
@@ -352,8 +378,16 @@ public class JWTUtil {
                     .build();
             DecodedJWT jwt = verifier.verify(token);
 
+            int userId = jwt.getClaim("id").asInt();
+            long deviceId = jwt.getClaim("device_id").asLong();
+
+            // Проверяем, не отозвано ли устройство
+            if (authService.isDeviceRevoked(userId, deviceId)) {
+                throw new TokenRevokedException("Device has been revoked");
+            }
+
             TokenInfo tokenInfo = new TokenInfo();
-            tokenInfo.setUserId(jwt.getClaim("id").asInt());
+            tokenInfo.setUserId(userId);
             tokenInfo.setExpirationTime(jwt.getExpiresAt().toInstant().getEpochSecond());
 
             return tokenInfo;
@@ -361,7 +395,6 @@ public class JWTUtil {
             throw new IllegalArgumentException("Invalid token", e);
         }
     }
-
 }
 
 //    @Value("${spring.jwt.secret}")

@@ -55,7 +55,7 @@ public class DeviceService {
         List<UserDevice> userDevices = userDeviceRepository.findByUserId(userId);
 
         userDevices.stream()
-                .filter(device -> device.getUserId() != currentDeviceId)
+                .filter(device -> device.getId() != currentDeviceId)
                 .forEach(device -> {jwtUtil.revokeUserDeviceTokens(userId, device.getId());
                         device.setTrusted(false);
                 });

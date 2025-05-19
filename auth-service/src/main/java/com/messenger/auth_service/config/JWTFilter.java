@@ -11,6 +11,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
@@ -33,23 +34,39 @@ public class JWTFilter extends OncePerRequestFilter{
             String token = authorization.substring(7);
             if(token.isEmpty()) {
                 response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Invalid JWT token in bearer header");
+                return; // Добавляем return, чтобы прервать обработку запроса
             } else {
                 try {
                     Optional<String> username = jwtUtil.verifyToken(token);
-                    UserDetails userDetails = userProfileDetailsService.loadUserByUsername(username.orElse(null));
+                    if (username.isEmpty()) {
+                        response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Invalid username in JWT token");
+                        return;
+                    }
+
+                    UserDetails userDetails = userProfileDetailsService.loadUserByUsername(username.get());
+                    if (userDetails == null) {
+                        response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "User not found");
+                        return;
+                    }
+
                     UsernamePasswordAuthenticationToken authentication =
                             new UsernamePasswordAuthenticationToken(userDetails,
                                     userDetails.getPassword(),
                                     userDetails.getAuthorities());
+
                     if (SecurityContextHolder.getContext().getAuthentication() == null) {
                         SecurityContextHolder.getContext().setAuthentication(authentication);
                     }
                 } catch (JWTVerificationException e) {
-                    response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Invalid JWT token");
+                    response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Invalid JWT token");
+                    return;
+                } catch (UsernameNotFoundException e) {
+                    response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "User not found");
+                    return;
                 }
             }
         }
-        filterChain.doFilter(request, response);
 
+        filterChain.doFilter(request, response);
     }
 }

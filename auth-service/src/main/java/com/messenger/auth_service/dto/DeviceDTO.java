@@ -17,6 +17,4 @@ public class DeviceDTO {
     private LocalDateTime lastLoginDate;
     private boolean trusted;
     private boolean currentDevice;
-
-    private String formattedLastLoginDate;
 }

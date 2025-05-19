@@ -38,7 +38,7 @@ public class DeviceController {
         List<UserDevice> devices = deviceRepository.findByUserId(userId);
 
         // Текущее устройство
-        long currentDeviceId = jwtUtil.extractDeviceId(token);
+        int currentDeviceId = jwtUtil.extractDeviceId(token);
 
         List<DeviceDTO> deviceDTOs = devices.stream()
                 .map(device -> {
