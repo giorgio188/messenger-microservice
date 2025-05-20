@@ -113,7 +113,7 @@ public class JWTUtil {
     /**
      * Генерирует долгоживущий refresh токен с привязкой к устройству
      */
-    private String generateRefreshToken(String username, int userId, long deviceId) {
+    private String generateRefreshToken(String username, int userId, int deviceId) {
         Date expirationDate = Date.from(ZonedDateTime.now()
                 .plusDays(refreshTokenExpirationDays).toInstant());
 
@@ -141,7 +141,6 @@ public class JWTUtil {
         refreshToken.setToken(hashToken(token)); // Храним хэш токена, не сам токен
         refreshToken.setUserId(userId);
         refreshToken.setDeviceId(deviceId); // Привязываем к устройству
-        //TODO пофиксить
         refreshToken.setExpiryDate(expiryDate);
         refreshToken.setRevoked(false);
 
@@ -379,7 +378,7 @@ public class JWTUtil {
             DecodedJWT jwt = verifier.verify(token);
 
             int userId = jwt.getClaim("id").asInt();
-            long deviceId = jwt.getClaim("device_id").asLong();
+            int deviceId = jwt.getClaim("device_id").asInt();
 
             // Проверяем, не отозвано ли устройство
             if (authService.isDeviceRevoked(userId, deviceId)) {
@@ -388,7 +387,8 @@ public class JWTUtil {
 
             TokenInfo tokenInfo = new TokenInfo();
             tokenInfo.setUserId(userId);
-            tokenInfo.setExpirationTime(jwt.getExpiresAt().toInstant().getEpochSecond());
+            tokenInfo.setDeviceId(deviceId);
+            tokenInfo.setExpirationTime(jwt.getExpiresAt());
 
             return tokenInfo;
         } catch (JWTVerificationException e) {

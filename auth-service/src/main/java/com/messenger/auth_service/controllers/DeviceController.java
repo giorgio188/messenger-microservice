@@ -28,12 +28,8 @@ public class DeviceController {
      * Получение списка устройств пользователя
      */
     @GetMapping
-    public ResponseEntity<List<DeviceDTO>> getUserDevices(@RequestHeader("Authorization") String token) {
-        if (token.startsWith("Bearer ")) {
-            token = token.substring(7);
-        }
-
-        int userId = jwtUtil.extractUserId(token);
+    public ResponseEntity<List<DeviceDTO>> getUserDevices(@RequestHeader("x-user-id") int userId,
+            @RequestHeader("Authorization") String token) {
 
         List<UserDevice> devices = deviceRepository.findByUserId(userId);
 
@@ -60,16 +56,11 @@ public class DeviceController {
      * Удаление устройства (выход из сессии на конкретном устройстве)
      */
     @DeleteMapping("/{deviceId}")
-    public ResponseEntity<?> revokeDevice(
+    public ResponseEntity<?> revokeDevice(@RequestHeader("x-user-id") int userId,
             @RequestHeader("Authorization") String token,
             @PathVariable int deviceId) {
 
-        if (token.startsWith("Bearer ")) {
-            token = token.substring(7);
-        }
-
-        int userId = jwtUtil.extractUserId(token);
-        long currentDeviceId = jwtUtil.extractDeviceId(token);
+        int currentDeviceId = jwtUtil.extractDeviceId(token);
 
         // Нельзя удалить текущее устройство через этот метод
         if (deviceId == currentDeviceId) {
@@ -96,13 +87,10 @@ public class DeviceController {
      * Выход со всех устройств, кроме текущего
      */
     @PostMapping("/revoke-all-except-current")
-    public ResponseEntity<?> revokeAllExceptCurrent(@RequestHeader("Authorization") String token) {
-        if (token.startsWith("Bearer ")) {
-            token = token.substring(7);
-        }
+    public ResponseEntity<?> revokeAllExceptCurrent(@RequestHeader("x-user-id") int userId,
+            @RequestHeader("Authorization") String token) {
 
-        int userId = jwtUtil.extractUserId(token);
-        long currentDeviceId = jwtUtil.extractDeviceId(token);
+        int currentDeviceId = jwtUtil.extractDeviceId(token);
 
         List<UserDevice> devices = deviceRepository.findByUserId(userId);
 
@@ -118,12 +106,8 @@ public class DeviceController {
      * Выход со всех устройств, включая текущее
      */
     @PostMapping("/revoke-all")
-    public ResponseEntity<?> revokeAllDevices(@RequestHeader("Authorization") String token) {
-        if (token.startsWith("Bearer ")) {
-            token = token.substring(7);
-        }
-
-        int userId = jwtUtil.extractUserId(token);
+    public ResponseEntity<?> revokeAllDevices(@RequestHeader("x-user-id") int userId,
+                                              @RequestHeader("Authorization") String token) {
 
         List<UserDevice> devices = deviceRepository.findByUserId(userId);
 
