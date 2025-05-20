@@ -26,15 +26,18 @@
 		<url/>
 	</scm>
 	<properties>
-		<java.version>23</java.version>
+		<java.version>22</java.version>
 	</properties>
 	<dependencies>
 		<dependency>
 			<groupId>org.modelmapper</groupId>
 			<artifactId>modelmapper</artifactId>
-			<version>3.2.1</version>
 		</dependency>
-	</dependencies>
+		<dependency>
+			<groupId>nl.basjes.parse.useragent</groupId>
+			<artifactId>yauaa</artifactId>
+		</dependency>
+    </dependencies>
 
 	<build>
 		<plugins>

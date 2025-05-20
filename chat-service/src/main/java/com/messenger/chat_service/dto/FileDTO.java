@@ -9,7 +9,6 @@ import java.time.LocalDateTime;
 @Data
 public class FileDTO {
 
-    //TODO убрать дублирование информации
     private int id;
     private int chatId;
     private int senderId;

@@ -6,29 +6,29 @@ import org.springframework.stereotype.Service;
 
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.time.Duration;
 import java.util.Base64;
 
 @Service
 @RequiredArgsConstructor
 public class AuthService {
     private final ReactiveRedisTemplate<String, Integer> redisTemplate;
-    private static final String CACHE_PREFIX = "auth:";
 
-    public void logout(String token) {
-        String tokenHash = hashToken(token);
-        if (tokenHash == null) {
-            throw new RuntimeException("Error processing token");
+    public void markDeviceAsRevoked(String deviceRevokedKey, long ttlMillis) {
+        if (ttlMillis > 0) {
+            redisTemplate.opsForValue().set(
+                    deviceRevokedKey,
+                    1,
+                    Duration.ofMillis(ttlMillis)
+            ).subscribe();
         }
-        redisTemplate.delete(tokenHash);
     }
 
-    private String hashToken(String token) {
-        try {
-            MessageDigest digest = MessageDigest.getInstance("SHA-256");
-            byte[] hash = digest.digest(token.getBytes());
-            return CACHE_PREFIX + Base64.getUrlEncoder().encodeToString(hash);
-        } catch (NoSuchAlgorithmException e) {
-            return null;
-        }
+
+    public boolean isDeviceRevoked(int userId, long deviceId) {
+        String deviceRevokedKey = String.format("revoked_device:%d:%d", userId, deviceId);
+        return Boolean.TRUE.equals(
+                redisTemplate.hasKey(deviceRevokedKey).block()
+        );
     }
 }

@@ -2,8 +2,11 @@ package com.messenger.auth_service.dto;
 
 import lombok.Data;
 
+import java.util.Date;
+
 @Data
 public class TokenInfo {
     private int userId;
-    private long expirationTime;
+    private Date expirationTime;
+    private int deviceId;
 }

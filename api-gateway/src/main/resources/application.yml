@@ -37,6 +37,7 @@ spring:
           predicates:
             - Path=/api/auth/logout
             - Path=/api/auth/verify
+            - Path=/api/auth/devices/**
 
         - id: user-service
           uri: http://user-service:8082
