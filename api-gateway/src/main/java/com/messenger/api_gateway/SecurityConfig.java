@@ -24,7 +24,7 @@ public class SecurityConfig {
                 .cors(cors -> cors.disable())
                 .authorizeHttpRequests(authorize -> authorize
                         .requestMatchers("/api/auth/login", "api/auth/registration", "error").permitAll()
-                        .requestMatchers("/api/auth/verify", "api/auth/logout", "error").authenticated()
+                        .requestMatchers("/api/auth/verify", "api/auth/logout", "/api/auth/devices/**", "error").authenticated()
                         .requestMatchers("api/user/**", "api/friends/**").authenticated()
                         .requestMatchers("api/chats/**").authenticated()
                         .anyRequest().authenticated()
