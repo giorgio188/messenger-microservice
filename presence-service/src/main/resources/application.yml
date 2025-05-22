@@ -1,0 +1,62 @@
+server:
+  port: 8084
+
+api:
+  gateway:
+    url: ${GATEWAY_URL}
+
+spring:
+  application:
+    name: presence-service
+
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
+    consumer:
+      group-id: ${spring.application.name}
+      auto-offset-reset: earliest
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+      properties:
+        spring.json.trusted.packages: com.messenger.*
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+
+  data:
+    redis:
+      host: ${REDIS_HOST}
+      port: ${REDIS_PORT}
+      password: ${REDIS_PASSWORD}
+      database: 0
+      timeout: 60000
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+
+# Presence service specific configuration
+presence:
+  timeout:
+    away: 300000      # 5 minutes in milliseconds
+    offline: 600000   # 10 minutes in milliseconds
+  heartbeat:
+    interval: 30000   # 30 seconds in milliseconds
+  typingStatus:
+    expiry: 10000     # 10 seconds in milliseconds
+
+# Kafka topics configuration
+kafka:
+  topics:
+    user-presence-events: user-presence-events
+    typing-notification-events: typing-notification-events
+    auth-events: auth-events
+    device-status-events: device-status-events
+
+logging:
+  level:
+    root: INFO
+    com.messenger.presence_service: DEBUG
+    org.springframework.kafka: INFO
+    org.springframework.data.redis: INFO

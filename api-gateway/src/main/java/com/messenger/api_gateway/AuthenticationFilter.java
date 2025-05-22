@@ -114,10 +114,10 @@ public class AuthenticationFilter extends AbstractGatewayFilterFactory<Authentic
     }
 
     private static class TokenInfo {
-        private Integer userId;
-        private Long expirationTime;
+        private int userId;
+        private long expirationTime;
 
-        public Integer getUserId() {
+        public int getUserId() {
             return userId;
         }
 
@@ -125,11 +125,11 @@ public class AuthenticationFilter extends AbstractGatewayFilterFactory<Authentic
             this.userId = userId;
         }
 
-        public Long getExpirationTime() {
+        public long getExpirationTime() {
             return expirationTime;
         }
 
-        public void setExpirationTime(Long expirationTime) {
+        public void setExpirationTime(long expirationTime) {
             this.expirationTime = expirationTime;
         }
     }

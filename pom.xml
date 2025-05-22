@@ -14,6 +14,7 @@
 		<module>auth-service</module>
 		<module>user-service</module>
 		<module>chat-service</module>
+		<module>presence-service</module>
 	</modules>
 
 	<properties>
@@ -25,7 +26,7 @@
 		<lombok.version>1.18.38</lombok.version>
 		<spring-boot.version>3.4.5</spring-boot.version>
 		<postgresql.version>42.7.4</postgresql.version>
-		<jackson-datatype-jsr310.version>2.18.2</jackson-datatype-jsr310.version>
+		<jackson.version>2.19.0</jackson.version>
 		<java-jwt.version>4.5.0</java-jwt.version>
 		<spring-web.version>6.2.7</spring-web.version>
 		<spring-env.version>4.0.0</spring-env.version>
@@ -33,6 +34,7 @@
 		<amazon-aws.version>2.31.45</amazon-aws.version>
 		<modelmapper.version>3.2.3</modelmapper.version>
 		<yauaa.version>7.31.0</yauaa.version>
+		<spring-kafka.version>3.3.5</spring-kafka.version>
 	</properties>
 
 	<dependencyManagement>
@@ -97,9 +99,14 @@
 				<version>${postgresql.version}</version>
 			</dependency>
 			<dependency>
+				<groupId>com.fasterxml.jackson.core</groupId>
+				<artifactId>jackson-databind</artifactId>
+				<version>${jackson.version}</version>
+			</dependency>
+			<dependency>
 				<groupId>com.fasterxml.jackson.datatype</groupId>
 				<artifactId>jackson-datatype-jsr310</artifactId>
-				<version>${jackson-datatype-jsr310.version}</version>
+				<version>${jackson.version}</version>
 			</dependency>
 			<dependency>
 				<groupId>com.auth0</groupId>
@@ -151,6 +158,11 @@
 				<groupId>nl.basjes.parse.useragent</groupId>
 				<artifactId>yauaa</artifactId>
 				<version>${yauaa.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.springframework.kafka</groupId>
+				<artifactId>spring-kafka</artifactId>
+				<version>${spring-kafka.version}</version>
 			</dependency>
 		</dependencies>
 	</dependencyManagement>
@@ -225,6 +237,14 @@
 		<dependency>
 			<groupId>software.amazon.awssdk</groupId>
 			<artifactId>s3</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>com.fasterxml.jackson.core</groupId>
+			<artifactId>jackson-databind</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.kafka</groupId>
+			<artifactId>spring-kafka</artifactId>
 		</dependency>
 <!--		<dependency>-->
 <!--			<groupId>org.springframework.cloud</groupId>-->
