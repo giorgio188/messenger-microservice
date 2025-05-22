@@ -40,6 +40,15 @@ spring:
       org.springframework.web: DEBUG
       org.hibernate: TRACE
 
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS}
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+
+kafka:
+  topics:
+    auth-events: auth-events
 app:
   device:
     cleanup-days: 30

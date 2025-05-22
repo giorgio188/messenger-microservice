@@ -6,6 +6,7 @@ import com.messenger.auth_service.exception.TokenRevokedException;
 import com.messenger.auth_service.models.UserProfile;
 import com.messenger.auth_service.repositories.UserProfileRepository;
 import com.messenger.auth_service.security.JWTUtil;
+import com.messenger.auth_service.services.AuthEventPublisher;
 import com.messenger.auth_service.services.AuthService;
 import com.messenger.auth_service.services.RegistrationService;
 import com.messenger.auth_service.utils.ClientInfoExtractor;
@@ -37,6 +38,7 @@ public class AuthController {
     private final UserProfileRepository userProfileRepository;
     private final ModelMapper modelMapper;
     private final ClientInfoExtractor clientInfoExtractor;
+    private final AuthEventPublisher authEventPublisher;
 
     @PostMapping("/registration")
     public ResponseEntity<?> performRegistration (@RequestBody RegistrationDTO registrationDTO,
@@ -78,6 +80,7 @@ public class AuthController {
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
         DeviceInfo deviceInfo = clientInfoExtractor.extractDeviceInfo(request);
+        authEventPublisher.publishLoginEvent(user.getId(), deviceInfo.getDeviceId());
 
         TokenPair tokenPair = jwtUtil.generateTokenPair(
                 authDTO.getUsername(),
@@ -128,6 +131,7 @@ public class AuthController {
         try {
             int userId = jwtUtil.extractUserId(jwtToken);
             int deviceId = jwtUtil.extractDeviceId(jwtToken);
+            authEventPublisher.publishLogoutEvent(userId, String.valueOf(deviceId));
 
             // Отзываем токены для текущего устройства
             jwtUtil.revokeUserDeviceTokens(userId, deviceId);
