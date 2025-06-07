@@ -26,6 +26,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/auth/login", "api/auth/registration", "error").permitAll()
                         .requestMatchers("/api/auth/verify", "api/auth/logout", "/api/auth/devices/**", "error").authenticated()
                         .requestMatchers("api/user/**", "api/friends/**").authenticated()
+                        .requestMatchers("api/presence-service/**").authenticated()
                         .requestMatchers("api/chats/**").authenticated()
                         .anyRequest().authenticated()
                 )

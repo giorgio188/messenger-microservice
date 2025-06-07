@@ -1,6 +1,7 @@
 package com.messenger.user_service.services;
 
 import com.messenger.user_service.dto.FriendDTO;
+import com.messenger.user_service.dto.UserPresenceDTO;
 import com.messenger.user_service.models.UserProfile;
 import com.messenger.user_service.models.enums.ProfileStatus;
 import com.messenger.user_service.repositories.UserProfileRepository;
@@ -30,6 +31,7 @@ public class UserProfileService {
     private final FriendListService friendListService;
     private static final String AVATAR_DIRECTORY = "avatars";
     private final PasswordEncoder passwordEncoder;
+    private final PresenceServiceClient presenceServiceClient;
 
     public UserProfile getUserProfile(int id) {
         Optional<UserProfile> userProfile = userProfileRepository.findById(id);
@@ -63,10 +65,7 @@ public class UserProfileService {
         userProfileRepository.deleteById(id);
     }
 
-    @Transactional
-    public void handleLogout(int userId) {
-        setUserOnlineStatus(userId, ProfileStatus.OFFLINE);
-    }
+
 
     @Transactional
     public String uploadAvatar(int userId, MultipartFile file) {
@@ -103,55 +102,27 @@ public class UserProfileService {
         return s3Service.getFileUrl(fileName);
     }
 
-    @Transactional
-    public void setUserOnlineStatus(int id, ProfileStatus status) {
-        Optional<UserProfile> userProfile = userProfileRepository.findById(id);
-        if (userProfile.isPresent()) {
-            UserProfile user = userProfile.get();
-            user.setStatus(status);
-            UserProfile savedProfile = userProfileRepository.save(user);
-
-            // Создаем уведомление о смене статуса
-            Map<String, Object> statusNotification = new HashMap<>();
-            statusNotification.put("type", "STATUS_CHANGED");
-            statusNotification.put("userId", id);
-            statusNotification.put("newStatus", status);
-            statusNotification.put("timestamp", LocalDateTime.now());
-
-            // Отправляем уведомление самому пользователю
-            messagingTemplate.convertAndSendToUser(
-                    String.valueOf(id),
-                    "/queue/status",
-                    statusNotification
-            );
-
-            // Получаем список друзей пользователя и отправляем им уведомление
-            List<FriendDTO> friendList = friendListService.getFriendList(id);
-            friendList.forEach(friend ->
-                    messagingTemplate.convertAndSendToUser(
-                            String.valueOf(friend.getId()),
-                            "/queue/friends/status",
-                            statusNotification
-                    )
-            );
-
-            log.info("User {} status changed to {}", id, status);
-        }
-    }
-
-    // Метод для обработки отключения пользователя при разрыве WebSocket соединения
-    @Transactional
-    public void handleWebSocketDisconnect(int userId) {
-        setUserOnlineStatus(userId, ProfileStatus.OFFLINE);
-        log.info("User {} disconnected from WebSocket", userId);
-    }
-
-    // Метод для обработки подключения пользователя при установке WebSocket соединения
-    @Transactional
-    public void handleWebSocketConnect(int userId) {
-        setUserOnlineStatus(userId, ProfileStatus.ONLINE);
-        log.info("User {} connected via WebSocket", userId);
-    }
+//    @Transactional
+//    public void handleLogout(int userId) {
+//
+//        Map<String, Object> logoutNotification = new HashMap<>();
+//        logoutNotification.put("type", "USER_LOGOUT");
+//        logoutNotification.put("userId", userId);
+//        logoutNotification.put("timestamp", LocalDateTime.now());
+//
+//        try {
+//            List<FriendDTO> friendList = friendListService.getFriendList(userId);
+//            friendList.forEach(friend ->
+//                    messagingTemplate.convertAndSendToUser(
+//                            String.valueOf(friend.getId()),
+//                            "/queue/friends/logout",
+//                            logoutNotification
+//                    )
+//            );
+//        } catch (Exception e) {
+//            throw new RuntimeException("Failed to logout user " + userId, e);
+//        }
+//    }
 
     @Transactional
     public void changePassword(int userId, String newPassword) {
@@ -167,3 +138,53 @@ public class UserProfileService {
     }
 
 }
+//
+//@Transactional
+//public void handleLogout(int userId) {
+//    setUserOnlineStatus(userId, ProfileStatus.OFFLINE);
+//}
+// Метод для обработки отключения пользователя при разрыве WebSocket соединения
+//@Transactional
+//public void handleWebSocketDisconnect(int userId) {
+//    setUserOnlineStatus(userId, ProfileStatus.OFFLINE);
+//    log.info("User {} disconnected from WebSocket", userId);
+//}
+//
+//// Метод для обработки подключения пользователя при установке WebSocket соединения
+//@Transactional
+//public void handleWebSocketConnect(int userId) {
+//    setUserOnlineStatus(userId, ProfileStatus.ONLINE);
+//    log.info("User {} connected via WebSocket", userId);
+//}
+//    @Transactional
+//    public void setUserOnlineStatus(int id, ProfileStatus status) {
+//        Optional<UserProfile> userProfile = userProfileRepository.findById(id);
+//        if (userProfile.isPresent()) {
+//            UserProfile user = userProfile.get();
+//            user.setStatus(status);
+//            UserProfile savedProfile = userProfileRepository.save(user);
+//
+//            // Создаем уведомление о смене статуса
+//            Map<String, Object> statusNotification = new HashMap<>();
+//            statusNotification.put("type", "STATUS_CHANGED");
+//            statusNotification.put("userId", id);
+//            statusNotification.put("newStatus", status);
+//            statusNotification.put("timestamp", LocalDateTime.now());
+//
+//            messagingTemplate.convertAndSendToUser(
+//                    String.valueOf(id),
+//                    "/queue/status",
+//                    statusNotification
+//            );
+//
+//            List<FriendDTO> friendList = friendListService.getFriendList(id);
+//            friendList.forEach(friend ->
+//                    messagingTemplate.convertAndSendToUser(
+//                            String.valueOf(friend.getId()),
+//                            "/queue/friends/status",
+//                            statusNotification
+//                    )
+//            );
+//
+//        }
+//    }

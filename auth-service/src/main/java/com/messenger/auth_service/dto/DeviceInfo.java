@@ -16,8 +16,6 @@ public class DeviceInfo {
     private String browserEngine;         // Движок браузера
     private String userAgent;             // Полная User-Agent строка
     private String ipAddress;             // IP-адрес при входе
-
-    // Дополнительные поля для более точной идентификации
     private boolean isMobile;             // Является ли устройство мобильным
     private boolean isTablet;             // Является ли устройство планшетом
     private boolean isDesktop;            // Является ли устройство настольным компьютером

@@ -37,3 +37,7 @@ aws:
     static: ${AWS_REGION}
   s3:
     bucket: ${AWS_BUCKET}
+
+services:
+  presence:
+    url: ${PRESENCE_SERVICE_URL}

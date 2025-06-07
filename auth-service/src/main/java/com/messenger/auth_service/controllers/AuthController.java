@@ -133,10 +133,8 @@ public class AuthController {
             int deviceId = jwtUtil.extractDeviceId(jwtToken);
             authEventPublisher.publishLogoutEvent(userId, String.valueOf(deviceId));
 
-            // Отзываем токены для текущего устройства
             jwtUtil.revokeUserDeviceTokens(userId, deviceId);
 
-            // Добавляем access токен в черный список
             jwtUtil.revokeAccessToken(jwtToken);
 
             return ResponseEntity.ok().build();

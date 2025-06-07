@@ -1,11 +1,133 @@
 services:
 
+  api-gateway:
+    build:
+      context: ./api-gateway
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - REDIS_HOST = ${MAIN_REDIS_HOST}
+      - REDIS_PORT = ${MAIN_REDIS_PORT}
+      - REDIS_PASSWORD = ${MAIN_REDIS_PASSWORD}
+    networks:
+      - microservices-network
+    depends_on:
+      - auth_user_friends_db
+      - redis
+
+  auth-service:
+    build:
+      context: ./auth-service
+      dockerfile: Dockerfile
+    ports:
+      - "8081:8081"
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - DB_USER_URL=${DB_USER_URL}
+      - DB_USER_USERNAME=${DB_USER_USERNAME}
+      - DB_USER_PASSWORD=${DB_USER_PASSWORD}
+      - JWT_SECRET=${JWT_SECRET}
+      - KAFKA_BOOTSTRAP_SERVERS=${KAFKA_BOOTSTRAP_SERVERS}
+      - REDIS_HOST = ${MAIN_REDIS_HOST}
+      - REDIS_PORT = ${MAIN_REDIS_PORT}
+      - REDIS_PASSWORD = ${MAIN_REDIS_PASSWORD}
+    networks:
+      - microservices-network
+    depends_on:
+      - auth_user_friends_db
+      - redis
+      - api-gateway
+
+  user-service:
+    build:
+      context: ./user-service
+      dockerfile: Dockerfile
+    ports:
+      - "8082:8082"
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - DB_USER_URL=${DB_USER_URL}
+      - DB_USER_USERNAME=${DB_USER_USERNAME}
+      - DB_USER_PASSWORD=${DB_USER_PASSWORD}
+      - JWT_SECRET=${JWT_SECRET}
+      - AWS_ACCESS_KEY=${AWS_ACCESS_KEY}
+      - AWS_SECRET_KEY=${AWS_SECRET_KEY}
+      - AWS_REGION=${AWS_REGION}
+      - AWS_BUCKET=${AWS_BUCKET}
+      - PRESENCE_SERVICE_URL=${PRESENCE_SERVICE_URL}
+    networks:
+      - microservices-network
+    depends_on:
+      - auth_user_friends_db
+      - redis
+      - api-gateway
+
+  chat-service:
+      build:
+        context: ./chat-service
+        dockerfile: Dockerfile
+      ports:
+        - "8083:8083"
+      environment:
+        - SPRING_PROFILES_ACTIVE=docker
+        - DB_CHATS_URL=${DB_CHATS_URL}
+        - DB_CHATS_USERNAME=${DB_CHATS_USERNAME}
+        - DB_CHATS_PASSWORD=${DB_CHATS_PASSWORD}
+        - JWT_SECRET=${JWT_SECRET}
+        - AWS_ACCESS_KEY=${AWS_ACCESS_KEY}
+        - AWS_SECRET_KEY=${AWS_SECRET_KEY}
+        - AWS_REGION=${AWS_REGION}
+        - AWS_BUCKET=${AWS_BUCKET}
+        - ENCRYPTION_PASSWORD=${ENCRYPTION_PASSWORD}
+        - ENCRYPTION_SALT=${ENCRYPTION_SALT}
+        - PRESENCE_SERVICE_URL=${PRESENCE_SERVICE_URL}
+        - REDIS_HOST = ${MAIN_REDIS_HOST}
+        - REDIS_PORT = ${MAIN_REDIS_PORT}
+        - REDIS_PASSWORD = ${MAIN_REDIS_PASSWORD}
+      networks:
+        - microservices-network
+      depends_on:
+        - chats_db
+        - redis
+        - api-gateway
+
+  presence-service:
+    build:
+      context: ./presence-service
+      dockerfile: Dockerfile
+    ports:
+      - "8084:8084"
+    environment:
+      - GATEWAY_URL = ${GATEWAY_URL}
+      - KAFKA_BOOTSTRAP_SERVERS=${KAFKA_BOOTSTRAP_SERVERS}
+      - spring.application.name = ${APP_NAME}
+      - REDIS_HOST = ${PRESENCE_REDIS_HOST}
+      - REDIS_PORT = ${PRESENCE_REDIS_PORT}
+      - REDIS_PASSWORD = ${PRESENCE_REDIS_PASSWORD}
+    networks:
+      - microservices-network
+    depends_on:
+      - redis_presence_container
+      - user-service
+      - api-gateway
 
   redis:
     image: redis:latest
     container_name: redis_container
     ports:
       - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - microservices-network
+
+  redis_presence:
+    image: redis:latest
+    container_name: redis_presence_container
+    ports:
+      - "6379:6380"
     volumes:
       - redis_data:/data
     networks:
@@ -26,84 +148,6 @@ services:
       - ./user-service:/docker-entrypoint-initdb.d/init.sql
     networks:
       - microservices-network
-
-  api-gateway:
-    build:
-      context: ./api-gateway
-      dockerfile: Dockerfile
-    ports:
-      - "8080:8080"
-    environment:
-      - SPRING_PROFILES_ACTIVE=docker
-    networks:
-      - microservices-network
-    depends_on:
-      - auth_user_friends_db
-      - redis
-
-  auth-service:
-    build:
-      context: ./auth-service
-      dockerfile: Dockerfile
-    ports:
-      - "8081:8081"
-    environment:
-      - SPRING_PROFILES_ACTIVE=docker
-      - DB_USER_URL=${DB_USER_URL}
-      - DB_USER_USERNAME=${DB_USER_USERNAME}
-      - DB_USER_PASSWORD=${DB_USER_PASSWORD}
-      - JWT_SECRET=${JWT_SECRET}
-    networks:
-      - microservices-network
-    depends_on:
-      - auth_user_friends_db
-      - redis
-
-  user-service:
-    build:
-      context: ./user-service
-      dockerfile: Dockerfile
-    ports:
-      - "8082:8082"
-    environment:
-      - SPRING_PROFILES_ACTIVE=docker
-      - DB_USER_URL=${DB_USER_URL}
-      - DB_USER_USERNAME=${DB_USER_USERNAME}
-      - DB_USER_PASSWORD=${DB_USER_PASSWORD}
-      - JWT_SECRET=${JWT_SECRET}
-      - AWS_ACCESS_KEY=${AWS_ACCESS_KEY}
-      - AWS_SECRET_KEY=${AWS_SECRET_KEY}
-      - AWS_REGION=${AWS_REGION}
-      - AWS_BUCKET=${AWS_BUCKET}
-    networks:
-      - microservices-network
-    depends_on:
-      - auth_user_friends_db
-      - redis
-
-  chat-service:
-      build:
-        context: ./chat-service
-        dockerfile: Dockerfile
-      ports:
-        - "8083:8083"
-      environment:
-        - SPRING_PROFILES_ACTIVE=docker
-        - DB_CHATS_URL=${DB_CHATS_URL}
-        - DB_CHATS_USERNAME=${DB_CHATS_USERNAME}
-        - DB_CHATS_PASSWORD=${DB_CHATS_PASSWORD}
-        - JWT_SECRET=${JWT_SECRET}
-        - AWS_ACCESS_KEY=${AWS_ACCESS_KEY}
-        - AWS_SECRET_KEY=${AWS_SECRET_KEY}
-        - AWS_REGION=${AWS_REGION}
-        - AWS_BUCKET=${AWS_BUCKET}
-        - ENCRYPTION_PASSWORD=${ENCRYPTION_PASSWORD}
-        - ENCRYPTION_SALT=${ENCRYPTION_SALT}
-      networks:
-        - microservices-network
-      depends_on:
-        - chats_db
-        - redis
 
   chats_db:
     image: postgres:17

@@ -9,8 +9,9 @@ logging:
 spring:
   data:
     redis:
-      host: redis
-      port: 6379
+      host: ${REDIS_HOST}
+      port: ${REDIS_PORT}
+      password: ${REDIS_PASSWORD}
       database: 0
   main:
     web-application-type: reactive
@@ -53,6 +54,14 @@ spring:
             - name: AuthenticationFilter
           predicates:
             - Path=/api/chat/**
+
+        - id: presence-service
+          uri: http://presence-service:8084
+          filters:
+            - AuthenticationFilter
+          predicates:
+            - Path=/api/presence/**
+
 
     kubernetes:
       discovery:

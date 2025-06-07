@@ -10,7 +10,7 @@ spring:
     name: presence-service
 
   kafka:
-    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS}
     consumer:
       group-id: ${spring.application.name}
       auto-offset-reset: earliest
@@ -27,7 +27,6 @@ spring:
       host: ${REDIS_HOST}
       port: ${REDIS_PORT}
       password: ${REDIS_PASSWORD}
-      database: 0
       timeout: 60000
 
 management:
