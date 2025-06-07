@@ -1,9 +1,7 @@
 package com.messenger.user_service.services;
 
 import com.messenger.user_service.dto.FriendDTO;
-import com.messenger.user_service.dto.UserPresenceDTO;
 import com.messenger.user_service.models.UserProfile;
-import com.messenger.user_service.models.enums.ProfileStatus;
 import com.messenger.user_service.repositories.UserProfileRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -13,10 +11,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.time.LocalDateTime;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 
 @Service

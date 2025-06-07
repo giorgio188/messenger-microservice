@@ -5,18 +5,13 @@ import com.messenger.user_service.dto.UserPresenceDTO;
 import com.messenger.user_service.dto.UserProfileDTO;
 import com.messenger.user_service.dto.UserProfilePageDTO;
 import com.messenger.user_service.models.UserProfile;
-import com.messenger.user_service.models.enums.ProfileStatus;
 import com.messenger.user_service.repositories.UserProfileRepository;
 import com.messenger.user_service.services.PresenceServiceClient;
 import com.messenger.user_service.services.UserProfileService;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.messaging.handler.annotation.MessageMapping;
-import org.springframework.messaging.simp.SimpMessageHeaderAccessor;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 

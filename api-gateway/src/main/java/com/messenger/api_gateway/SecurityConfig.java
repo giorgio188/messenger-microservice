@@ -3,6 +3,7 @@ package com.messenger.api_gateway;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.reactive.EnableWebFluxSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
@@ -22,23 +23,14 @@ public class SecurityConfig {
         http
                 .csrf(csrf -> csrf.disable())
                 .cors(cors -> cors.disable())
-                .authorizeHttpRequests(authorize -> authorize
-                        .requestMatchers("/api/auth/login", "api/auth/registration", "error").permitAll()
+                .authorizeHttpRequests(authorize -> authorize                        .requestMatchers("/api/auth/login", "api/auth/registration", "error").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/auth/login", "/api/auth/registration").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/auth/refresh").permitAll()
                         .requestMatchers("/api/auth/verify", "api/auth/logout", "/api/auth/devices/**", "error").authenticated()
                         .requestMatchers("api/user/**", "api/friends/**").authenticated()
                         .requestMatchers("api/presence-service/**").authenticated()
                         .requestMatchers("api/chats/**").authenticated()
                         .anyRequest().authenticated()
-                )
-                .formLogin(formLogin -> formLogin
-                        .loginPage("api/auth/login")
-                        .defaultSuccessUrl("/index", true)
-                        .failureUrl("/auth/login?error")
-                )
-                .logout(logout -> logout
-                                .logoutUrl("api/auth/logout")
-                                .invalidateHttpSession(true)
-                                .deleteCookies("JSESSIONID")
                 )
                 .sessionManagement(sessionManagement -> sessionManagement
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
