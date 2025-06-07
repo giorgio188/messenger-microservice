@@ -21,14 +21,14 @@ public interface ChatRepository extends JpaRepository<Chat, Integer> {
 
     @Query("SELECT c FROM Chat c " +
             "WHERE c.type = 'PRIVATE' " +
-            "AND EXISTS (SELECT m FROM ChatMember m WHERE m.chat = c AND m.userId = :user1Id) " +
-            "AND EXISTS (SELECT m FROM ChatMember m WHERE m.chat = c AND m.userId = :user2Id)")
+            "AND EXISTS (SELECT 1 FROM ChatMember m1 WHERE m1.chat = c AND m1.userId = :user1Id) " +
+            "AND EXISTS (SELECT 1 FROM ChatMember m2 WHERE m2.chat = c AND m2.userId = :user2Id)")
     Optional<Chat> findPrivateChat(
             @Param("user1Id") int user1Id,
             @Param("user2Id") int user2Id
     );
 
-    @Query("SELECT COUNT(m) > 0 FROM ChatMember m " +
+    @Query("SELECT CASE WHEN COUNT(m) > 0 THEN true ELSE false END FROM ChatMember m " +
             "WHERE m.chat.id = :chatId AND m.userId = :userId")
     boolean isMember(
             @Param("chatId") int chatId,

@@ -14,11 +14,11 @@ import org.springframework.stereotype.Repository;
 public interface FileRepository extends JpaRepository<File, Integer> {
     Page<File> findByChatIdAndIsDeletedFalseOrderByUploadedAtDesc(int chatId, Pageable pageable);
 
-    @Query("SELECT f FROM File f WHERE f.chat = :chatId AND f.isDeleted = false AND " +
+    @Query("SELECT f FROM File f WHERE f.chat.id = :chatId AND f.isDeleted = false AND " +
             "(f.type = 'JPEG' OR f.type = 'PNG' OR f.type = 'GIF') ORDER BY f.uploadedAt DESC")
     Page<File> findImagesByChatId(@Param("chatId") int chatId, Pageable pageable);
 
-    @Query("SELECT f FROM File f WHERE f.chat = :chatId AND f.isDeleted = false AND " +
+    @Query("SELECT f FROM File f WHERE f.chat.id = :chatId AND f.isDeleted = false AND " +
             "f.type NOT IN ('JPEG', 'PNG', 'GIF') ORDER BY f.uploadedAt DESC")
     Page<File> findDocumentsByChatId(@Param("chatId") int chatId, Pageable pageable);
 }

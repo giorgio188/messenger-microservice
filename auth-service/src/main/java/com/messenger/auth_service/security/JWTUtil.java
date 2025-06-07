@@ -309,7 +309,7 @@ public class JWTUtil {
     /**
      * Отзывает токены для конкретного устройства пользователя
      */
-    public void revokeUserDeviceTokens(int userId, long deviceId) {
+    public void revokeUserDeviceTokens(int userId, int deviceId) {
         // Отзываем все refresh токены для данного устройства
         refreshTokenRepository.updateRevokedByUserIdAndDeviceId(userId, deviceId, true);
 

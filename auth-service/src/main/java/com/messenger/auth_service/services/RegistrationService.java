@@ -2,7 +2,6 @@ package com.messenger.auth_service.services;
 
 
 import com.messenger.auth_service.models.UserProfile;
-import com.messenger.auth_service.models.enums.ProfileStatus;
 import com.messenger.auth_service.repositories.UserProfileRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -25,7 +24,6 @@ public class RegistrationService {
     public void register(UserProfile userProfile) {
         userProfile.setPassword(passwordEncoder.encode(userProfile.getPassword()));
         log.info("Registering user: " + userProfile.getUsername());
-        userProfile.setStatus(ProfileStatus.ONLINE);
         userProfileRepository.save(userProfile);
     }
 
