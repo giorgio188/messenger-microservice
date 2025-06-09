@@ -17,9 +17,9 @@ spring:
 
   data:
     redis:
-      host: redis
-      port: 6379
-      database: 1
+      host: ${REDIS_HOST}
+      port: ${REDIS_PORT}
+      password: ${REDIS_PASSWORD}
 
   datasource:
     url: ${DB_CHATS_URL}
@@ -46,3 +46,7 @@ aws:
     static: ${AWS_REGION}
   s3:
     bucket: ${AWS_BUCKET}
+
+services:
+  presence:
+    url: ${PRESENCE_SERVICE_URL}

@@ -1,20 +1,17 @@
 package com.messenger.user_service.controllers;
 
 
+import com.messenger.user_service.dto.UserPresenceDTO;
 import com.messenger.user_service.dto.UserProfileDTO;
 import com.messenger.user_service.dto.UserProfilePageDTO;
 import com.messenger.user_service.models.UserProfile;
-import com.messenger.user_service.models.enums.ProfileStatus;
 import com.messenger.user_service.repositories.UserProfileRepository;
+import com.messenger.user_service.services.PresenceServiceClient;
 import com.messenger.user_service.services.UserProfileService;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.messaging.handler.annotation.MessageMapping;
-import org.springframework.messaging.simp.SimpMessageHeaderAccessor;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -30,7 +27,7 @@ public class UserProfileController {
     private final UserProfileService userProfileService;
     private final ModelMapper modelMapper;
     private final UserProfileRepository userProfileRepository;
-
+    private final PresenceServiceClient presenceServiceClient;
 
     @GetMapping("/{userId}")
     public ResponseEntity<UserProfilePageDTO> getUserProfile(@PathVariable int userId) {
@@ -106,32 +103,13 @@ public class UserProfileController {
         return ResponseEntity.ok(avatarLink);
     }
 
-    @MessageMapping("/user.connect")
-    public void handleUserConnect(SimpMessageHeaderAccessor headerAccessor) {
-        String userIdStr = headerAccessor.getFirstNativeHeader("X-User-Id");
-        if (userIdStr != null) {
-            try {
-                int userId = Integer.parseInt(userIdStr);
-                userProfileService.setUserOnlineStatus(userId, ProfileStatus.ONLINE);
-            } catch (NumberFormatException e) {
-                Logger logger = LoggerFactory.getLogger(this.getClass());
-                logger.error("Failed to parse X-User-Id '{}' as an integer", userIdStr, e);
-            }
+    @GetMapping("/{userId}/presence")
+    public ResponseEntity<UserPresenceDTO> getUserPresence(@PathVariable int userId) {
+        UserPresenceDTO presence = presenceServiceClient.getUserPresence(userId);
+        if (presence == null) {
+            return ResponseEntity.notFound().build();
         }
-    }
-
-    @MessageMapping("/user.disconnect")
-    public void handleUserDisconnect(SimpMessageHeaderAccessor headerAccessor) {
-        String userIdStr = headerAccessor.getFirstNativeHeader("X-User-Id");
-        if (userIdStr != null) {
-            try {
-                int userId = Integer.parseInt(userIdStr);
-                userProfileService.setUserOnlineStatus(userId, ProfileStatus.OFFLINE);
-            } catch (NumberFormatException e) {
-                Logger logger = LoggerFactory.getLogger(this.getClass());
-                logger.error("Failed to parse X-User-Id '{}' as an integer", userIdStr, e);
-            }
-        }
+        return ResponseEntity.ok(presence);
     }
 
     @GetMapping("/exists/{userId}")
@@ -148,4 +126,31 @@ public class UserProfileController {
 //        String avatarFileName = userProfileRepository.findById(userId).get().getAvatar();
 //        String avatarLink = userProfileService.getAvatarLink(avatarFileName);
 //        return ResponseEntity.ok(avatarLink);
+//    }
+//    @MessageMapping("/user.connect")
+//    public void handleUserConnect(SimpMessageHeaderAccessor headerAccessor) {
+//        String userIdStr = headerAccessor.getFirstNativeHeader("X-User-Id");
+//        if (userIdStr != null) {
+//            try {
+//                int userId = Integer.parseInt(userIdStr);
+//                userProfileService.setUserOnlineStatus(userId, ProfileStatus.ONLINE);
+//            } catch (NumberFormatException e) {
+//                Logger logger = LoggerFactory.getLogger(this.getClass());
+//                logger.error("Failed to parse X-User-Id '{}' as an integer", userIdStr, e);
+//            }
+//        }
+//    }
+//
+//    @MessageMapping("/user.disconnect")
+//    public void handleUserDisconnect(SimpMessageHeaderAccessor headerAccessor) {
+//        String userIdStr = headerAccessor.getFirstNativeHeader("X-User-Id");
+//        if (userIdStr != null) {
+//            try {
+//                int userId = Integer.parseInt(userIdStr);
+//                userProfileService.setUserOnlineStatus(userId, ProfileStatus.OFFLINE);
+//            } catch (NumberFormatException e) {
+//                Logger logger = LoggerFactory.getLogger(this.getClass());
+//                logger.error("Failed to parse X-User-Id '{}' as an integer", userIdStr, e);
+//            }
+//        }
 //    }

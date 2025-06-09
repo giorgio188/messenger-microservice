@@ -72,4 +72,8 @@ create table files
     type        file_type,
     is_deleted  boolean                  default false,
     uploaded_at timestamp with time zone default current_timestamp
-)
+);
+
+CREATE INDEX idx_messages_chat_id_sent_at ON messages(chat_id, sent_at DESC);
+CREATE INDEX idx_messages_status_sender ON messages(chat_id, sender_id, status);
+CREATE INDEX idx_files_message_id ON files(message_id);

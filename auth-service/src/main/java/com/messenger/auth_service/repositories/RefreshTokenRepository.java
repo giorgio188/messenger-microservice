@@ -32,7 +32,7 @@ public interface RefreshTokenRepository extends JpaRepository<RefreshToken, Inte
             "WHERE r.userId = :userId AND r.deviceId = :deviceId")
     void updateRevokedByUserIdAndDeviceId(
             @Param("userId") int userId,
-            @Param("deviceId") long deviceId,
+            @Param("deviceId") int deviceId,
             @Param("revoked") boolean revoked);
 
     @Transactional

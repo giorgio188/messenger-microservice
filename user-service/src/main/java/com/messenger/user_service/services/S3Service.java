@@ -1,42 +1,58 @@
 package com.messenger.user_service.services;
 
-import com.amazonaws.services.s3.AmazonS3;
-import com.amazonaws.services.s3.model.ObjectMetadata;
-import com.amazonaws.services.s3.model.PutObjectRequest;
-import com.messenger.user_service.models.enums.FileType;
+
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
+import software.amazon.awssdk.core.sync.RequestBody;
+import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.model.DeleteObjectRequest;
+import software.amazon.awssdk.services.s3.model.GetUrlRequest;
 
 import java.io.IOException;
 import java.util.UUID;
 
 @Service
-@RequiredArgsConstructor
 public class S3Service {
-    private final AmazonS3 s3Client;
+
+    private final S3Client s3Client;
 
     @Value("${aws.s3.bucket}")
     private String bucketName;
 
+    public S3Service(S3Client s3Client) {
+        this.s3Client = s3Client;
+    }
+
     public String uploadFile(MultipartFile file, String directory) {
+        if (file.isEmpty()) {
+            throw new IllegalArgumentException("File cannot be empty");
+        }
+
+        String contentType = file.getContentType();
+        if (contentType == null) {
+            throw new IllegalArgumentException("Content type cannot be determined");
+        }
+
+        if (!isImageContentType(contentType)) {
+            throw new IllegalArgumentException("Only image files are allowed (JPEG, PNG, GIF)");
+        }
+
         try {
             String fileName = generateFileName(file, directory);
 
-            ObjectMetadata metadata = new ObjectMetadata();
-            metadata.setContentType(file.getContentType());
-            metadata.setContentLength(file.getSize());
+            software.amazon.awssdk.services.s3.model.PutObjectRequest request = software.amazon.awssdk.services.s3.model.PutObjectRequest.builder()
+                    .bucket(bucketName)
+                    .key(fileName)
+                    .contentType(contentType)
+                    .contentLength(file.getSize())
+                    .build();
 
-            PutObjectRequest request = new PutObjectRequest(bucketName,
-                    fileName,
-                    file.getInputStream(),
-                    metadata);
-
-            s3Client.putObject(request);
+            s3Client.putObject(request, RequestBody.fromInputStream(file.getInputStream(), file.getSize()));
             return fileName;
         } catch (IOException e) {
-            throw new RuntimeException("Failed to upload file to S3" + e.getMessage());
+            throw new RuntimeException("Failed to upload file to S3: " + e.getMessage());
         }
     }
 
@@ -51,30 +67,41 @@ public class S3Service {
             }
         }
         if (extension.isEmpty()) {
-            String contentType = file.getContentType();
-            if (contentType != null) {
-                extension = FileType.getByContentType(contentType)
-                        .map(FileType::getExtension)
-                        .orElse("");
-            }
-        }
-        if (extension.isEmpty()) {
-            throw new IllegalArgumentException("Could not determine file extension" + extension);
+            throw new IllegalArgumentException("Could not determine file extension");
         }
         return directory + "/" + UUID.randomUUID() + extension;
     }
 
     public void deleteFile(String fileName) {
         try {
-            s3Client.deleteObject(bucketName, fileName);
+            DeleteObjectRequest request = DeleteObjectRequest.builder()
+                    .bucket(bucketName)
+                    .key(fileName)
+                    .build();
+
+            s3Client.deleteObject(request);
         } catch (Exception e) {
             throw new RuntimeException("Failed to delete file from S3", e);
         }
     }
 
     public String getFileUrl(String fileName) {
-        return s3Client.getUrl(bucketName, fileName).toString();
+        GetUrlRequest request = GetUrlRequest.builder()
+                .bucket(bucketName)
+                .key(fileName)
+                .build();
+
+        return s3Client.utilities().getUrl(request).toString();
     }
 
+    private boolean isImageContentType(String contentType) {
+        return contentType.startsWith("image/") && (
+                contentType.equals("image/jpeg") ||
+                        contentType.equals("image/jpg") ||
+                        contentType.equals("image/png") ||
+                        contentType.equals("image/gif")
+        );
+    }
 }
+
 

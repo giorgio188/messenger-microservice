@@ -16,19 +16,18 @@ import java.util.List;
 @Repository
 public interface MessageRepository extends JpaRepository<Message, Integer> {
 
-    @Query("SELECT DISTINCT m FROM Message m LEFT JOIN FETCH m.files f WHERE m.chatId.id = :chatId ORDER BY m.sentAt DESC")
-    List<Message> findTop10ByChatIdWithFilesOrderBySentAtDesc(int chatId);
-
+    @Query("SELECT DISTINCT m FROM Message m LEFT JOIN FETCH m.files f WHERE m.chat.id = :chatId ORDER BY m.sentAt DESC")
+    List<Message> findTop10ByChatIdWithFilesOrderBySentAtDesc(@Param("chatId") int chatId);
 
     @Modifying
     @Transactional
-    @Query("UPDATE Message m SET m.status = 'READ' WHERE m.chat = :chatId AND m.senderId != :userId AND m.status != 'READ'")
+    @Query("UPDATE Message m SET m.status = 'READ' WHERE m.chat.id = :chatId AND m.senderId != :userId AND m.status != 'read'")
     void markMessagesAsRead(@Param("chatId") int chatId, @Param("userId") int userId);
 
-    @Query("SELECT COUNT(m) FROM Message m WHERE m.chat = :chatId AND m.senderId != :userId AND m.status != 'READ'")
+    @Query("SELECT COUNT(m) FROM Message m WHERE m.chat.id = :chatId AND m.senderId != :userId AND m.status != 'read'")
     int countUnreadMessages(@Param("chatId") int chatId, @Param("userId") int userId);
 
-    @Query("SELECT DISTINCT m FROM Message m LEFT JOIN FETCH m.files WHERE m.chat = :chatId ORDER BY m.sentAt DESC")
+    @Query("SELECT DISTINCT m FROM Message m LEFT JOIN FETCH m.files WHERE m.chat.id = :chatId ORDER BY m.sentAt DESC")
     Page<Message> findByChatIdWithFilesOrderBySentAtDesc(@Param("chatId") int chatId, Pageable pageable);
 }
 

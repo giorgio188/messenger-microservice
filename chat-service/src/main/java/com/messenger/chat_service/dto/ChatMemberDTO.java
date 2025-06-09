@@ -3,6 +3,7 @@ package com.messenger.chat_service.dto;
 import com.messenger.chat_service.models.enums.ChatRole;
 import lombok.Data;
 
+import java.time.Instant;
 import java.time.LocalDateTime;
 
 @Data
@@ -14,4 +15,7 @@ public class ChatMemberDTO {
     private ChatRole role;
     private LocalDateTime joinedAt;
     private LocalDateTime lastReadAt;
+    private String presenceStatus;
+    private Instant lastActivity;
+    private String statusMessage;
 }

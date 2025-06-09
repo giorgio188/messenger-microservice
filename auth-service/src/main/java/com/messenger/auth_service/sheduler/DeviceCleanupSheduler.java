@@ -2,7 +2,7 @@ package com.messenger.auth_service.sheduler;
 
 import com.messenger.auth_service.services.DeviceService;
 import lombok.RequiredArgsConstructor;
-import lombok.Value;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 

@@ -9,6 +9,8 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 import org.springframework.data.map.repository.config.EnableMapRepositories;
 
 import java.time.LocalDateTime;
@@ -44,7 +46,8 @@ public class Message {
     private boolean isDeleted;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "status")
+    @JdbcTypeCode(SqlTypes.NAMED_ENUM)
+    @Column(name = "status", columnDefinition = "message_status")
     private MessageStatus status;
 
     @CreationTimestamp

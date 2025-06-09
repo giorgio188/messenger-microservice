@@ -1,7 +1,6 @@
 package com.messenger.auth_service.models;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
-import com.messenger.auth_service.models.enums.ProfileStatus;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotNull;
@@ -39,10 +38,6 @@ public class UserProfile {
     @Size(min = 3, max = 60)
     @Column(name = "nickname")
     private String nickname;
-
-    @Enumerated(EnumType.STRING)
-    @Column(name = "status")
-    private ProfileStatus status;
 
     @NotNull
     @Size(min = 10, max = 10)

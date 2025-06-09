@@ -1,6 +1,7 @@
 package com.messenger.chat_service.services;
 
 import com.messenger.chat_service.dto.ChatMemberDTO;
+import com.messenger.chat_service.dto.UserPresenceDTO;
 import com.messenger.chat_service.exceptions.ChatAccessDeniedException;
 import com.messenger.chat_service.exceptions.ChatNotFoundException;
 import com.messenger.chat_service.exceptions.ChatValidationException;
@@ -19,6 +20,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
@@ -28,6 +30,7 @@ public class ChatMemberService {
     private final UserInfoUtil userInfoUtil;
     private final ChatRepository chatRepository;
     private final MapperDTO mapperDTO;
+    private final PresenceServiceClient presenceServiceClient;
 
     public List<ChatMemberDTO> getChatMembers(int chatId, int userId) {
         Chat chat = chatRepository.findById(chatId)
@@ -40,8 +43,27 @@ public class ChatMemberService {
 
         }
 
+        List<Integer> memberIds = chat.getMembers().stream()
+                .map(ChatMember::getUserId)
+                .collect(Collectors.toList());
+
+        List<UserPresenceDTO> presences = presenceServiceClient.getMultipleUsersPresence(memberIds);
+        Map<Integer, UserPresenceDTO> presenceMap = presences.stream()
+                .collect(Collectors.toMap(UserPresenceDTO::getUserId, p -> p));
+
         return chat.getMembers().stream()
-                .map(mapperDTO::toChatMemberDTO)
+                .map(member -> {
+                    ChatMemberDTO dto = mapperDTO.toChatMemberDTO(member);
+
+                    UserPresenceDTO presence = presenceMap.get(member.getUserId());
+                    if (presence != null) {
+                        dto.setPresenceStatus(presence.getStatus());
+                        dto.setLastActivity(presence.getLastActivity());
+                        dto.setStatusMessage(presence.getStatusMessage());
+                    }
+
+                    return dto;
+                })
                 .collect(Collectors.toList());
     }
 

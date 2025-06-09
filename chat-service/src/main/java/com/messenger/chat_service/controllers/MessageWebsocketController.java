@@ -72,6 +72,55 @@ public class MessageWebsocketController {
         }
     }
 
+    @MessageMapping("/chat/{chatId}/typing/start")
+    public void handleTypingStart(
+            @DestinationVariable int chatId,
+            SimpMessageHeaderAccessor headerAccessor) {
+
+        String userIdStr = headerAccessor.getFirstNativeHeader("X-User-Id");
+        String deviceId = headerAccessor.getFirstNativeHeader("X-Device-Id");
+
+        if (userIdStr != null) {
+            try {
+                int userId = Integer.parseInt(userIdStr);
+                messagingTemplate.convertAndSend(
+                        "/topic/chat." + chatId + ".typing",
+                        Map.of(
+                                "userId", userId,
+                                "eventType", "TYPING_START",
+                                "timestamp", System.currentTimeMillis()
+                        )
+                );
+            } catch (NumberFormatException e) {
+                return;
+            }
+        }
+    }
+
+    @MessageMapping("/chat/{chatId}/typing/stop")
+    public void handleTypingStop(
+            @DestinationVariable int chatId,
+            SimpMessageHeaderAccessor headerAccessor) {
+
+        String userIdStr = headerAccessor.getFirstNativeHeader("X-User-Id");
+
+        if (userIdStr != null) {
+            try {
+                int userId = Integer.parseInt(userIdStr);
+                messagingTemplate.convertAndSend(
+                        "/topic/chat." + chatId + ".typing",
+                        Map.of(
+                                "userId", userId,
+                                "eventType", "TYPING_STOP",
+                                "timestamp", System.currentTimeMillis()
+                        )
+                );
+            } catch (NumberFormatException e) {
+                return;
+            }
+        }
+    }
+
     private void sendErrorToUser(int userId, String errorMessage) {
         messagingTemplate.convertAndSendToUser(
                 String.valueOf(userId),
